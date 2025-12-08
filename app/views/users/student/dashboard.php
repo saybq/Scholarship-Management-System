@@ -1,14 +1,109 @@
 <?php
-    session_start();
-    if (!isset($_SESSION["logged_in"]) || $_SESSION["role"] !== "student") {
-        header("Location: ../auth/login.php");
-        exit;
-    }
+session_start();
+require_once __DIR__ . "../../../../core/dbconnection.php";
 
-    if ($_SESSION["role"] !== "student") {
-            header("Location: /Scholarship/app/views/auth/login.php");
-            exit;
-        }
+if (!isset($_SESSION["logged_in"]) || $_SESSION["role"] !== "student") {
+    header("Location: ../auth/login.php");
+    exit;
+}
+
+$studentID = $_SESSION["user_id"];
+
+/* =============================
+   UPCOMING DEADLINES
+============================= */
+$stmtDeadlines = $pdo->prepare("
+    SELECT scholarship_Name, deadline
+    FROM scholarshipprogram
+    WHERE status = 'approved'
+      AND deadline >= CURDATE()
+    ORDER BY deadline ASC
+    LIMIT 5
+");
+$stmtDeadlines->execute();
+$deadlines = $stmtDeadlines->fetchAll(PDO::FETCH_ASSOC);
+
+/* =============================
+   RECENT ACTIVITY
+============================= */
+$stmtActivity = $pdo->prepare("
+    SELECT a.status, a.date_applied, s.scholarship_Name
+    FROM application a
+    INNER JOIN scholarshipprogram s 
+        ON a.scholarship_ID = s.scholarship_ID
+    WHERE a.student_ID = ?
+    ORDER BY a.date_applied DESC
+    LIMIT 5
+");
+$stmtActivity->execute([$studentID]);
+$activities = $stmtActivity->fetchAll(PDO::FETCH_ASSOC);
+
+/* =============================
+   TOP STATS
+============================= */
+
+// AVAILABLE SCHOLARSHIPS
+$stmtAvailable = $pdo->prepare("
+    SELECT COUNT(scholarship_ID)
+    FROM scholarshipprogram
+    WHERE status = 'approved'
+");
+$stmtAvailable->execute();
+$available = $stmtAvailable->fetchColumn();
+
+// PENDING
+$stmtPending = $pdo->prepare("
+    SELECT COUNT(application_ID)
+    FROM application
+    WHERE student_ID = ? AND status = 'pending'
+");
+$stmtPending->execute([$studentID]);
+$pending = $stmtPending->fetchColumn();
+
+// APPROVED
+$stmtApproved = $pdo->prepare("
+    SELECT COUNT(application_ID)
+    FROM application
+    WHERE student_ID = ? AND status = 'approved'
+");
+$stmtApproved->execute([$studentID]);
+$approved = $stmtApproved->fetchColumn();
+
+// REJECTED
+$stmtRejected = $pdo->prepare("
+    SELECT COUNT(application_ID)
+    FROM application
+    WHERE student_ID = ? AND status = 'rejected'
+");
+$stmtRejected->execute([$studentID]);
+$rejected = $stmtRejected->fetchColumn();
+
+/* =============================
+   STATISTICS SECTION
+============================= */
+
+// TOTAL SCHOLARSHIPS APPLIED
+$stmtSubmitted = $pdo->prepare("
+    SELECT COUNT(application_ID)
+    FROM application
+    WHERE student_ID = ?
+");
+$stmtSubmitted->execute([$studentID]);
+$submitted = $stmtSubmitted->fetchColumn();
+
+// TOTAL AWARDS (SUM OF AMOUNT OF APPROVED SCHOLARSHIPS)
+$stmtAwards = $pdo->prepare("
+    SELECT SUM(sp.Amount)
+    FROM application a
+    INNER JOIN scholarshipprogram sp
+        ON a.scholarship_ID = sp.scholarship_ID
+    WHERE a.student_ID = ? AND a.status = 'approved'
+");
+$stmtAwards->execute([$studentID]);
+$totalAwards = $stmtAwards->fetchColumn() ?? 0;
+
+// SUCCESS RATE
+$successRate = ($submitted > 0) ? round(($approved / $submitted) * 100) : 0;
 ?>
 
 <!DOCTYPE html>
@@ -20,157 +115,141 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600;700" />
 </head>
-<body class="bg-gray-50 ">
+<body class="bg-gray-50">
 
-    <div class="flex min-h-screen">
+<div class="flex min-h-screen">
 
-        <?php include __DIR__ . '/../../assets/components/studentSidebar.php'; ?>
-        
-        <!-- Main Content -->
-        <main class="flex-1 p-6">
-            <!-- PAGE HEADER -->
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold">Dashboard</h2>
-                <p class="text-gray-500 text-sm">Welcome back, Student</p>
-            </div>
+    <?php include __DIR__ . '/../../assets/components/studentSidebar.php'; ?>
 
-            <!-- TOP CARDS -->
-            <div class="grid grid-cols-4 gap-4 mb-6">
+    <main class="flex-1 p-6">
 
-                <!-- Available Scholarships -->
-                <div class="bg-white border rounded-xl p-4 shadow">
-                    <p class="font-semibold">Available Scholarships</p>
-                    <p class="text-3xl font-bold mt-2">12</p>
-                    <p class="text-xs text-gray-500">Open for applications</p>
-                </div>
+        <!-- HEADER -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold">Dashboard</h2>
+            <p class="text-gray-500 text-sm">Welcome back, Student</p>
+        </div>
 
-                <!-- Applications Submitted -->
-                <div class="bg-white border rounded-xl p-4 shadow">
-                    <p class="font-semibold">Applications Submitted</p>
-                    <p class="text-3xl font-bold mt-2">3</p>
-                    <p class="text-xs text-gray-500">Total applications</p>
-                </div>
+        <!-- TOP CARDS -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
 
-                <!-- Pending Review -->
-                <div class="bg-white border rounded-xl p-4 shadow">
-                    <p class="font-semibold">Pending Review</p>
-                    <p class="text-3xl font-bold mt-2">2</p>
-                    <p class="text-xs text-gray-500">Awaiting decision</p>
-                </div>
-
-                <!-- Approved -->
-                <div class="bg-white border rounded-xl p-4 shadow">
-                    <p class="font-semibold">Approved</p>
-                    <p class="text-3xl font-bold mt-2">1</p>
-                    <p class="text-xs text-gray-500">Scholarships awarded</p>
-                </div>
-            </div>
-
-            <!-- SECOND ROW -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
-
-                <!-- Upcoming Deadlines -->
-                <div class="bg-white border rounded-xl p-4 shadow">
-                    <p class="font-semibold">Upcoming Deadlines</p>
-                    <p class="text-gray-500 text-sm mb-4">Scholarships closing soon</p>
-
-                    <div class="space-y-3">
-
-                        <!-- Item -->
-                        <div class="flex items-center justify-between border p-3 rounded-lg">
-                            <div>
-                                <p class="font-semibold">DOST Scholarship Program</p>
-                                <p class="text-xs text-gray-500">Dec 15, 2025</p>
-                            </div>
-                            <span class="text-xs text-orange-500">18 days left</span>
-                        </div>
-
-                        <div class="flex items-center justify-between border p-3 rounded-lg">
-                            <div>
-                                <p class="font-semibold">SM Foundation Scholarship</p>
-                                <p class="text-xs text-gray-500">Dec 20, 2025</p>
-                            </div>
-                            <span class="text-xs text-orange-500">23 days left</span>
-                        </div>
-
-                        <div class="flex items-center justify-between border p-3 rounded-lg">
-                            <div>
-                                <p class="font-semibold">Ayala Foundation Grant</p>
-                                <p class="text-xs text-gray-500">Jan 5, 2026</p>
-                            </div>
-                            <span class="text-xs text-orange-500">39 days left</span>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="bg-white border rounded-xl p-4 shadow">
-                    <p class="font-semibold">Recent Activity</p>
-                    <p class="text-gray-500 text-sm mb-4">Your latest application updates</p>
-
-                    <div class="space-y-3">
-
-                        <!-- Activity Item -->
-                        <div class="flex justify-between items-start border p-3 rounded-lg">
-                            <div>
-                                <p class="font-semibold">Application submitted</p>
-                                <p class="text-xs text-gray-500">DOST Scholarship</p>
-                            </div>
-                            <div class="text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded">pending</div>
-                        </div>
-
-                        <div class="flex justify-between items-start border p-3 rounded-lg">
-                            <div>
-                                <p class="font-semibold">Application approved</p>
-                                <p class="text-xs text-gray-500">Merit Scholarship</p>
-                            </div>
-                            <div class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">approved</div>
-                        </div>
-
-                        <div class="flex justify-between items-start border p-3 rounded-lg">
-                            <div>
-                                <p class="font-semibold">Application submitted</p>
-                                <p class="text-xs text-gray-500">SM Foundation</p>
-                            </div>
-                            <div class="text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded">pending</div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- STATISTICS -->
             <div class="bg-white border rounded-xl p-4 shadow">
+                <p class="font-semibold">Available Scholarships</p>
+                <p class="text-3xl font-bold mt-2"><?= $available ?></p>
+                <p class="text-xs text-gray-500">Open for applications</p>
+            </div>
 
-                <p class="font-semibold mb-4">Application Statistics</p>
+            <div class="bg-white border rounded-xl p-4 shadow">
+                <p class="font-semibold">Pending Review</p>
+                <p class="text-3xl font-bold mt-2"><?= $pending ?></p>
+                <p class="text-xs text-gray-500">Awaiting decision</p>
+            </div>
 
-                <div class="grid grid-cols-3 gap-4">
+            <div class="bg-white border rounded-xl p-4 shadow">
+                <p class="font-semibold">Approved</p>
+                <p class="text-3xl font-bold mt-2"><?= $approved ?></p>
+                <p class="text-xs text-gray-500">Scholarships awarded</p>
+            </div>
 
-                    <!-- Success Rate -->
-                    <div class="bg-blue-50 text-blue-700 rounded-xl p-6 flex flex-col items-center">
-                        <p class="text-3xl font-bold">67%</p>
-                        <p class="text-xs text-blue-700">Success Rate</p>
-                    </div>
+            <div class="bg-white border rounded-xl p-4 shadow">
+                <p class="font-semibold">Rejected Applications</p>
+                <p class="text-3xl font-bold mt-2"><?= $rejected ?></p>
+                <p class="text-xs text-gray-500">Applications not approved</p>
+            </div>
 
-                    <!-- Total Awards -->
-                    <div class="bg-green-50 text-green-700 rounded-xl p-6 flex flex-col items-center">
-                        <p class="text-3xl font-bold">₱50,000</p>
-                        <p class="text-xs text-green-700">Total Awards</p>
-                    </div>
+        </div>
 
-                    <!-- Scholarships Applied -->
-                    <div class="bg-yellow-50 text-yellow-700 rounded-xl p-6 flex flex-col items-center">
-                        <p class="text-3xl font-bold">5</p>
-                        <p class="text-xs text-yellow-700">Scholarships Applied</p>
-                    </div>
+        <!-- SECOND ROW (2 COLUMNS) -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
 
+            <!-- UPCOMING DEADLINES -->
+            <div class="bg-white border rounded-xl p-4 shadow">
+                <p class="font-semibold">Upcoming Deadlines</p>
+                <p class="text-gray-500 text-sm mb-4">Scholarships closing soon</p>
+
+                <div class="space-y-3">
+                    <?php if (empty($deadlines)): ?>
+                        <p class="text-sm text-gray-500">No upcoming deadlines.</p>
+                    <?php else: ?>
+                        <?php foreach ($deadlines as $d): 
+                            $daysLeft = ceil((strtotime($d['deadline']) - time()) / 86400);
+                        ?>
+                            <div class="flex items-center justify-between border p-3 rounded-lg">
+                                <div>
+                                    <p class="font-semibold"><?= htmlspecialchars($d['scholarship_Name']) ?></p>
+                                    <p class="text-xs text-gray-500"><?= $d['deadline'] ?></p>
+                                </div>
+                                <span class="text-xs text-orange-500"><?= $daysLeft ?> days left</span>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
 
-            
-        </main>
-    </div>
+            <!-- RECENT ACTIVITY -->
+            <div class="bg-white border rounded-xl p-4 shadow">
+                <p class="font-semibold">Recent Activity</p>
+                <p class="text-gray-500 text-sm mb-4">Your latest application updates</p>
+
+                <div class="space-y-3">
+                    <?php if (empty($activities)): ?>
+                        <p class="text-sm text-gray-500">No recent activity.</p>
+                    <?php else: ?>
+                        <?php foreach ($activities as $act): ?>
+                            <div class="flex justify-between items-start border p-3 rounded-lg">
+                                <div>
+                                    <p class="font-semibold"><?= htmlspecialchars($act['scholarship_Name']) ?></p>
+                                    <p class="text-xs text-gray-500"><?= $act['date_applied'] ?></p>
+                                </div>
+
+                                <?php 
+                                    $color = [
+                                        'pending' => 'text-yellow-600 bg-yellow-100',
+                                        'approved' => 'text-green-600 bg-green-100',
+                                        'rejected' => 'text-red-600 bg-red-100'
+                                    ][$act['status']];
+                                ?>
+
+                                <div class="text-xs <?= $color ?> px-2 py-1 rounded">
+                                    <?= $act['status'] ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- STATISTICS (FULL WIDTH) -->
+        <div class="bg-white border rounded-xl p-4 shadow">
+
+            <p class="font-semibold mb-4">Application Statistics</p>
+
+            <div class="grid grid-cols-3 gap-4">
+
+                <!-- SUCCESS RATE -->
+                <div class="bg-blue-50 text-blue-700 rounded-xl p-6 flex flex-col items-center">
+                    <p class="text-3xl font-bold"><?= $successRate ?>%</p>
+                    <p class="text-xs text-blue-700">Success Rate</p>
+                </div>
+
+                <!-- TOTAL AWARDS -->
+                <div class="bg-green-50 text-green-700 rounded-xl p-6 flex flex-col items-center">
+                    <p class="text-3xl font-bold">₱<?= number_format($totalAwards) ?></p>
+                    <p class="text-xs text-green-700">Total Awards</p>
+                </div>
+
+                <!-- SCHOLARSHIPS APPLIED -->
+                <div class="bg-yellow-50 text-yellow-700 rounded-xl p-6 flex flex-col items-center">
+                    <p class="text-3xl font-bold"><?= $submitted ?></p>
+                    <p class="text-xs text-yellow-700">Scholarships Applied</p>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+</div>
 
 </body>
 </html>

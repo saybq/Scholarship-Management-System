@@ -41,18 +41,18 @@
 
         if ($role === "admin_staff") {
             $sql = "INSERT INTO admissionstaff 
-                    (username, password, first_Name, middle_Name, last_Name, department, email)
+                    (username, password, first_Name,  last_Name, department, email)
                     VALUES (?, ?, ?, ?, 'N/A', ?)";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$username, $password, $firstname, $middle, $last, $department, $email]);
+            $stmt->execute([$username, $password, $firstname, $last, $email]);
         }
 
         if ($role === "sponsor") {
             $sql = "INSERT INTO sponsor 
                     (username, password, first_Name, last_Name, middle_Name, email, contact_Number, sponsor_company, sponsor_type)
-                    VALUES (?, ?, ?, ?, ?, ?, 'N/A', 'external')";
+                    VALUES (?, ?, ?, ?, 'N/A', ?, ?, 'N/A', 'external')";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$username, $password, $firstname, $last, $middle, $email, $contact, $company]);
+            $stmt->execute([$username, $password, $firstname, $last, $email, $contact]);
         }
 
         if ($role === "student") {

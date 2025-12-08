@@ -13,22 +13,30 @@
     
 
 $sqlApproved = "
-    SELECT 
-    sp.*, 
-    CONCAT(s.first_Name, ' ', s.middle_Name, ' ', s.last_Name) AS sponsor_name,
-    s.email AS sponsor_email,
-    s.contact_Number AS sponsor_contact,
-    s.sponsor_company AS sponsor_company,
-    s.sponsor_type,
+        SELECT 
+        sp.*, 
+        CONCAT(s.first_Name, ' ', s.middle_Name, ' ', s.last_Name) AS sponsor_name,
+        s.email AS sponsor_email,
+        s.contact_Number AS sponsor_contact,
+        s.sponsor_company AS sponsor_company,
+        s.sponsor_type,
+        CONCAT(r.first_Name, ' ', r.last_Name) AS reviewer_name,
 
-    CONCAT(r.first_Name, ' ', r.last_Name) AS reviewer_name
+        COUNT(a.application_ID) AS applicants_count  -- NEW FIELD
+
     FROM scholarshipprogram sp
     LEFT JOIN sponsor s 
         ON sp.sponsor_ID = s.sponsor_ID
     LEFT JOIN admissionstaff r
         ON sp.reviewer_ID = r.reviewer_ID
+    LEFT JOIN application a
+        ON sp.scholarship_ID = a.scholarship_ID  -- COUNT APPLICATIONS
+
     WHERE sp.status = 'approved'
-    ORDER BY sp.scholarship_ID DESC";
+    GROUP BY sp.scholarship_ID
+    ORDER BY sp.scholarship_ID DESC
+";
+
 
 $stmt = $pdo->prepare($sqlApproved);
 $stmt->execute();
@@ -120,7 +128,7 @@ $reviewers = $pdo->query("SELECT reviewer_ID, first_Name, last_Name FROM admissi
                         <!-- Applicants count -->
                         <div class="flex items-center gap-1">
                             <span class="material-symbols-outlined text-gray-500 text-base">group</span>
-                            <?//= $s['applicants_count'] ?> applicants
+                            <?= $s['applicants_count'] ?> applicants
                         </div>
 
                     </div>
@@ -151,7 +159,6 @@ $reviewers = $pdo->query("SELECT reviewer_ID, first_Name, last_Name FROM admissi
                             )">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
-
 
                     </div>
 

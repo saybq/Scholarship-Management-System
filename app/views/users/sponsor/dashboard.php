@@ -57,7 +57,9 @@
     $stmtFunds = $pdo->prepare("
         SELECT SUM(Amount) AS total_funds
         FROM scholarshipprogram
-        WHERE sponsor_ID = ?");
+        WHERE sponsor_ID = ? 
+        AND status = 'approved'
+    ");
     $stmtFunds->execute([$sponsorID]);
     $total_funds = $stmtFunds->fetch(PDO::FETCH_ASSOC)['total_funds'] ?? 0;
 ?>

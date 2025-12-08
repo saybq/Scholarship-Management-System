@@ -2,7 +2,13 @@
     session_start();
 
     // SECURITY CHECK
-    if (!isset($_SESSION["logged_in"]) || $_SESSION["role"] !== "admin") {
+    if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] !== true) {
+            header("Location: /Scholarship/app/views/auth/login.php");
+            exit;
+    }
+
+    // Check correct role
+    if ($_SESSION["role"] !== "admin") {
         header("Location: /Scholarship/app/views/auth/login.php");
         exit;
     }

@@ -1,5 +1,6 @@
 <?php
     session_start();
+    require_once __DIR__ . "../../../../core/dbconnection.php";
     if (!isset($_SESSION["logged_in"]) || $_SESSION["role"] !== "student") {
         header("Location: ../auth/login.php");
         exit;
@@ -9,6 +10,22 @@
             header("Location: /Scholarship/app/views/auth/login.php");
             exit;
         }
+
+    $stmt = $pdo->prepare("
+        SELECT 
+            scholarship_ID,
+            scholarship_Name,
+            description,
+            Amount,
+            requirements,
+            deadline
+        FROM scholarshipprogram
+        WHERE status = 'approved'
+    ");
+    $stmt->execute();
+    $scholarships = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 ?>
 
 <!DOCTYPE html>
@@ -16,7 +33,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Scholarships</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600;700" />
 </head>
@@ -24,6 +41,22 @@
 <body class="bg-gray-50">
 
 <div class="flex min-h-screen">
+        <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+            <script>alert("Application Submitted Succressfully!");</script>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['error']) && $_GET['error'] == 1): ?>
+            <script>alert("Failed to Submit!");</script>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['error']) && $_GET['error'] == 'empty'): ?>
+            <script>alert("Please fill out all fields.");</script>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['error']) && $_GET['error'] == 'already_applied'): ?>
+            <script>alert("You have already applied for this scholarship.");</script>
+        <?php endif; ?>
+
 
     <!-- Sidebar -->
     <?php include __DIR__ . '/../../assets/components/studentSidebar.php'; ?>
@@ -52,89 +85,68 @@
                         >
                     </div>
 
-        <!-- Scholarship List (3 ITEMS ONLY) -->
+        <!-- Scholarship List -->
         <div class="space-y-4">
 
-            <!-- ITEM 1 -->
-            <div class="bg-white p-5 rounded-lg shadow flex justify-between items-center border">
-                <div class="flex items-start gap-3">
-                    <span class="material-symbols-outlined text-blue-500">school</span>
+                <?php foreach ($scholarships as $s): ?>
 
-                    <div>
-                        <h2 class="font-semibold text-gray-800">DOST Scholarship Program</h2>
-                        <p class="text-gray-500 text-sm mb-2">Department of Science and Technology</p>
+                    <?php
+                        // Count requirements (split by newline)
+                        $reqCount = substr_count(trim($s['requirements']), "\n") + 1;
+                    ?>
 
-                        <p class="text-gray-600 text-sm mb-2">
-                            A merit-based scholarship for students pursuing science and technology courses.
-                        </p>
+                    <div class="bg-white p-5 rounded-lg shadow flex justify-between items-center border">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-blue-500">school</span>
 
-                        <div class="flex gap-4 text-xs text-gray-600">
-                            <span class="text-green-600">₱40,000/year</span>
-                            <span class="text-orange-600">Deadline: Dec 15, 2025</span>
-                            <span>4 requirements</span>
+                            <div>
+                                <h2 class="font-semibold text-gray-800"><?= htmlspecialchars($s['scholarship_Name']) ?></h2>
+
+                                <p class="text-gray-600 text-sm mb-2">
+                                    <?= htmlspecialchars(substr($s['description'], 0, 100)) ?>...
+                                </p>
+
+                                <div class="flex gap-4 text-xs text-gray-600">
+                                    <span class="text-green-600">₱<?= number_format($s['Amount'], 2) ?></span>
+                                    <span class="text-orange-600">Deadline: <?= htmlspecialchars($s['deadline']) ?></span>
+                                    <span><?= $reqCount ?> requirements</span>
+                                </div>
+                            </div>
                         </div>
+
+                        <?php
+                            // Check if the student already applied — safe version
+                            $check = $pdo->prepare("
+                                SELECT 1 FROM application
+                                WHERE student_ID = ? AND scholarship_ID = ?
+                                LIMIT 1
+                            ");
+                            $check->execute([$_SESSION['user_id'], $s['scholarship_ID']]);
+                            $alreadyApplied = $check->fetchColumn() !== false;
+                        ?>
+
+                        <?php if ($alreadyApplied): ?>
+                            <button 
+                                class="px-4 py-2 bg-gray-300 text-gray-600 rounded text-sm cursor-not-allowed"
+                                disabled
+                            >
+                                APPLIED
+                            </button>
+                        <?php else: ?>
+                            <button 
+                                onclick="openModal(
+                                    `<?= $s['scholarship_Name'] ?>`,
+                                    `<?= $s['requirements'] ?>`,
+                                    <?= $s['scholarship_ID'] ?>
+                                )"
+                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                            >
+                                Apply Now
+                            </button>
+                        <?php endif; ?>
                     </div>
-                </div>
 
-                <button onclick="openModal('DOST Scholarship Program')"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-                    Apply Now
-                </button>
-            </div>
-
-            <!-- ITEM 2 -->
-            <div class="bg-white p-5 rounded-lg shadow flex justify-between items-center border">
-                <div class="flex items-start gap-3">
-                    <span class="material-symbols-outlined text-blue-500">school</span>
-
-                    <div>
-                        <h2 class="font-semibold text-gray-800">SM Foundation Scholarship</h2>
-                        <p class="text-gray-500 text-sm mb-2">SM Foundation</p>
-
-                        <p class="text-gray-600 text-sm mb-2">
-                            Supporting deserving students from low-income families to achieve their dreams.
-                        </p>
-
-                        <div class="flex gap-4 text-xs text-gray-600">
-                            <span class="text-green-600">₱30,000/year</span>
-                            <span class="text-orange-600">Deadline: Dec 20, 2025</span>
-                            <span>3 requirements</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button onclick="openModal('SM Foundation Scholarship')"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-                    Apply Now
-                </button>
-            </div>
-
-            <!-- ITEM 3 -->
-            <div class="bg-white p-5 rounded-lg shadow flex justify-between items-center border">
-                <div class="flex items-start gap-3">
-                    <span class="material-symbols-outlined text-blue-500">school</span>
-
-                    <div>
-                        <h2 class="font-semibold text-gray-800">Ayala Foundation Grant</h2>
-                        <p class="text-gray-500 text-sm mb-2">Ayala Foundation</p>
-
-                        <p class="text-gray-600 text-sm mb-2">
-                            Empowering future leaders through quality education support.
-                        </p>
-
-                        <div class="flex gap-4 text-xs text-gray-600">
-                            <span class="text-green-600">₱50,000/year</span>
-                            <span class="text-orange-600">Deadline: Jan 5, 2026</span>
-                            <span>3 requirements</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button onclick="openModal('Ayala Foundation Grant')"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-                    Apply Now
-                </button>
-            </div>
+                <?php endforeach; ?>
 
         </div>
 
@@ -142,11 +154,14 @@
         <div id="applyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 
             flex items-center justify-center">
 
-            <div class="bg-white w-full max-w-lg p-6 rounded-lg shadow-lg">
+            <form action="/Scholarship/app/controllers/student/submitApplication.php" method="POST" class="bg-white w-full max-w-lg p-6 rounded-lg shadow-lg">
+
+                <input type="hidden" id="scholarshipID" name="scholarship_ID">
 
                 <div class="flex justify-between items-center mb-4">
                     <h2 id="modalTitle" class="text-lg font-semibold text-gray-800"></h2>
-                    <button onclick="closeModal()" class="material-symbols-outlined text-gray-500 cursor-pointer">
+                    <button type="button" onclick="closeModal()" 
+                            class="material-symbols-outlined text-gray-500 cursor-pointer">
                         close
                     </button>
                 </div>
@@ -157,15 +172,11 @@
 
                 <h3 class="font-medium text-gray-800 mb-2">Requirements:</h3>
 
-                <ul class="list-disc ml-6 text-sm text-gray-700 space-y-1 mb-4">
-                    <li>GWA of 85% or higher</li>
-                    <li>Enrolled in qualified courses</li>
-                    <li>Filipino citizen</li>
-                    <li>Family income below ₱300,000/year</li>
-                </ul>
+                <ul id="reqList" class="list-disc ml-6 text-sm text-gray-700 space-y-1 mb-4"></ul>
 
                 <label class="text-sm font-medium text-gray-700">Google Drive Link</label>
-                <input type="text" placeholder="https://drive.google.com/..."
+                <input type="text" name="requirements_link" required
+                    placeholder="https://drive.google.com/..."
                     class="w-full border px-3 py-2 rounded mt-1 mb-3 text-sm">
 
                 <p class="text-xs text-gray-500 mb-4">
@@ -173,26 +184,49 @@
                 </p>
 
                 <div class="flex justify-end gap-3">
-                    <button onclick="closeModal()"
-                            class="px-4 py-2 text-sm border rounded hover:bg-gray-100">Cancel</button>
+                    <button type="button" onclick="closeModal()"
+                            class="px-4 py-2 text-sm border rounded hover:bg-gray-100">
+                        Cancel
+                    </button>
 
-                    <button class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                    <button type="submit"
+                            class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
                         Submit Application
                     </button>
                 </div>
 
-            </div>
+            </form>
+
         </div>
+
 
         <!-- Modal Script -->
         <script>
-        function openModal(title) {
-            document.getElementById('modalTitle').innerText = 'Apply for ' + title;
-            document.getElementById('applyModal').classList.remove('hidden');
-        }
-        function closeModal() {
-            document.getElementById('applyModal').classList.add('hidden');
-        }
+            function openModal(title, requirements, id) {
+                document.getElementById('modalTitle').innerText = 'Apply for ' + title;
+
+                // Set Scholarship ID in hidden input
+                document.getElementById('scholarshipID').value = id;
+
+                // Split requirements
+                const reqArr = requirements.split("\n");
+
+                const ul = document.getElementById('reqList');
+                ul.innerHTML = ""; 
+
+                reqArr.forEach(r => {
+                    if (r.trim() !== "") {
+                        ul.innerHTML += `<li>${r.trim()}</li>`;
+                    }
+                });
+
+                document.getElementById('applyModal').classList.remove('hidden');
+            }
+
+
+            function closeModal() {
+                document.getElementById('applyModal').classList.add('hidden');
+            }
         </script>
 
 

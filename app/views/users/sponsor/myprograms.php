@@ -284,10 +284,9 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
                                                 </div>
 
                                                 <!-- Rejection Reason -->
-                                                <p class="text-red-600 text-sm mt-3">
-                                                    <strong>Reason:</strong>
-                                                    <?= htmlspecialchars($sc['rejection_reason']) ?>
-                                                </p>
+                                                <div class="mt-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+                                                    <strong>Reason:</strong> <?= htmlspecialchars($sc['rejection_reason']) ?>
+                                                </div>
                                             </div>
 
                                             <!-- STATUS BADGE -->

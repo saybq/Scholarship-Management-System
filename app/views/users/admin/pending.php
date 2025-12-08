@@ -67,80 +67,80 @@ try {
 
         <?php foreach ($pendingList as $row): ?>
 
-        <?php
-            $safeName = json_encode($row['scholarship_Name']); 
-            $safeID = json_encode($row['scholarship_ID']);
-        ?>
+            <?php
+                $safeName = json_encode($row['scholarship_Name']); 
+                $safeID = json_encode($row['scholarship_ID']);
+            ?>
 
-        <div class="bg-white p-6 rounded-xl shadow border mb-6">
+            <div class="bg-white p-6 rounded-xl shadow border mb-6">
 
-            <!-- Header -->
-            <div class="flex items-start justify-between">
-                <div>
-                    <h3 class="font-semibold text-lg"><?= htmlspecialchars($row['scholarship_Name']); ?></h3>
-                    <p class="text-gray-500 text-sm flex items-center gap-1 mt-1">
-                        <span class="material-symbols-outlined text-base">domain</span>
-                        <?= htmlspecialchars($row['sponsor_company']); ?>
+                <!-- Header -->
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="font-semibold text-lg"><?= htmlspecialchars($row['scholarship_Name']); ?></h3>
+                        <p class="text-gray-500 text-sm flex items-center gap-1 mt-1">
+                            <span class="material-symbols-outlined text-base">domain</span>
+                            <?= htmlspecialchars($row['sponsor_company']); ?>
+                        </p>
+                    </div>
+
+                    <span class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
+                        Pending
+                    </span>
+                </div>
+
+                <!-- Description -->
+                <p class="text-gray-700 text-sm mt-4 leading-relaxed">
+                    <?= nl2br(htmlspecialchars($row['description'])); ?>
+                </p>
+
+                <!-- Amount + Deadline -->
+                <div class="flex items-center gap-6 mt-5 text-sm">
+
+                    <div class="flex items-center gap-1 text-green-600 font-medium">
+                        <span class="material-symbols-outlined text-base">payments</span>
+                        ₱<?= number_format($row['Amount']); ?>/year
+                    </div>
+
+                    <div class="flex items-center gap-1 text-blue-600">
+                        <span class="material-symbols-outlined text-base">event</span>
+                        Deadline: <?= htmlspecialchars($row['deadline']); ?>
+                    </div>
+
+                </div>
+
+                <!-- Requirements -->
+                <div class="bg-gray-50 border rounded-lg p-4 mt-5 text-sm">
+                    <p class="font-semibold mb-1">Requirements:</p>
+                    <p class="text-gray-600 text-sm">
+                        <?= nl2br(htmlspecialchars($row['requirements'])); ?>
                     </p>
                 </div>
 
-                <span class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
-                    Pending
-                </span>
-            </div>
+                <!-- Footer -->
+                <div class="flex justify-between items-center mt-4 text-xs text-gray-500">
+                    <p>Submitted: <?= htmlspecialchars($row['dateof_creation']); ?></p>
 
-            <!-- Description -->
-            <p class="text-gray-700 text-sm mt-4 leading-relaxed">
-                <?= nl2br(htmlspecialchars($row['description'])); ?>
-            </p>
+                    <div class="flex gap-3">
 
-            <!-- Amount + Deadline -->
-            <div class="flex items-center gap-6 mt-5 text-sm">
+                        <!-- Approve -->
+                        <a href="/Scholarship/app/controllers/admin/approveReject.php?action=approve&id=<?= $row['scholarship_ID']; ?>"
+                        class="flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-xs">
+                            <span class="material-symbols-outlined text-sm">check</span>
+                            Approve
+                        </a>
 
-                <div class="flex items-center gap-1 text-green-600 font-medium">
-                    <span class="material-symbols-outlined text-base">payments</span>
-                    ₱<?= number_format($row['Amount']); ?>/year
-                </div>
+                        <!-- Reject -->
+                        <button 
+                            onclick='openRejectModal(<?= $safeName ?>, <?= $safeID ?>)'
+                            class="flex items-center gap-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-xs">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                            Reject
+                        </button>
 
-                <div class="flex items-center gap-1 text-blue-600">
-                    <span class="material-symbols-outlined text-base">event</span>
-                    Deadline: <?= htmlspecialchars($row['deadline']); ?>
-                </div>
-
-            </div>
-
-            <!-- Requirements -->
-            <div class="bg-gray-50 border rounded-lg p-4 mt-5 text-sm">
-                <p class="font-semibold mb-1">Requirements:</p>
-                <p class="text-gray-600 text-sm">
-                    <?= nl2br(htmlspecialchars($row['requirements'])); ?>
-                </p>
-            </div>
-
-            <!-- Footer -->
-            <div class="flex justify-between items-center mt-4 text-xs text-gray-500">
-                <p>Submitted: <?= htmlspecialchars($row['dateof_creation']); ?></p>
-
-                <div class="flex gap-3">
-
-                    <!-- Approve -->
-                    <a href="/Scholarship/app/controllers/admin/approveReject.php?action=approve&id=<?= $row['scholarship_ID']; ?>"
-                       class="flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-xs">
-                        <span class="material-symbols-outlined text-sm">check</span>
-                        Approve
-                    </a>
-
-                    <!-- Reject -->
-                    <button 
-                        onclick='openRejectModal(<?= $safeName ?>, <?= $safeID ?>)'
-                        class="flex items-center gap-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-xs">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                        Reject
-                    </button>
-
+                    </div>
                 </div>
             </div>
-        </div>
         <?php endforeach; ?>
 
     </main>

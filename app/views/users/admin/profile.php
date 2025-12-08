@@ -35,11 +35,13 @@ $data = $stmt->fetch(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-gray-50">
-        <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
-        <script>
-            alert("Profile Updated successfully!");
-        </script>
+    <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+        <script>alert("Profile Updated successfully!");</script>
     <?php endif; ?>
+    <?php if (isset($_GET['error'])): ?>
+        <script>alert("<?= htmlspecialchars($_GET['error']); ?>");</script>
+    <?php endif; ?>
+
     <div class="flex min-h-screen">
 
         <!-- Sidebar -->
@@ -77,7 +79,7 @@ $data = $stmt->fetch(PDO::FETCH_ASSOC);
                 <p class="font-semibold">Personal Information</p>
                 <p class="text-gray-500 text-sm mb-4">Update admin details</p>
 
-                <form action="/Scholarship/app/controllers/admin/updateprofile.php" method="POST" class="space-y-4">
+                <form  id="adminProfileForm" action="/Scholarship/app/controllers/admin/updateprofile.php" method="POST" class="space-y-4">
 
                     <!-- USERNAME -->
                     <div>
@@ -139,17 +141,17 @@ $data = $stmt->fetch(PDO::FETCH_ASSOC);
                             value="<?= htmlspecialchars($data['email']); ?>">
                     </div>
 
-                    <!-- SAVE BUTTON -->
-                    <div class="flex justify-end">
-                        <button class="px-4 py-2 bg-[#00bc7d] text-white rounded flex items-center gap-2 text-sm hover:bg-green-700">
-                            <span class="material-symbols-outlined text-base">save</span>
-                            Save Changes
-                        </button>
-                    </div>
-
                 </form>
             </div>
 
+            <div class="flex justify-end mt-6 mb-20">
+                <button 
+                    form="adminProfileForm"
+                    class="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2 text-sm hover:bg-blue-700">
+                        <span class="material-symbols-outlined text-base">save</span>
+                        Save Changes
+                </button>
+            </div>
         </main>
     </div>
 

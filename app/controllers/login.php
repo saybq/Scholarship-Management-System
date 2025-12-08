@@ -9,72 +9,50 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 $username = $_POST["username"] ?? "";
 $password = $_POST["password"] ?? "";
 
-// 1. Try Student Login
-$stmt = $pdo->prepare("SELECT * FROM student WHERE username = :username LIMIT 1");
-$stmt->execute([":username" => $username]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+function tryLogin($pdo, $table, $userIdField, $role, $username, $password) {
 
-if ($user && password_verify($password, $user["password"])) {
-    
-    $_SESSION["logged_in"] = true;
-    $_SESSION["role"] = "student";
-    $_SESSION["user_id"] = $user["student_ID"];
-    $_SESSION["username"] = $user["username"];
+    $stmt = $pdo->prepare("
+        SELECT $userIdField AS id, username, password
+        FROM $table
+        WHERE username = BINARY :username
+        LIMIT 1
+    ");
 
+    $stmt->execute([":username" => $username]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && password_verify($password, $user["password"])) {
+
+        $_SESSION["logged_in"] = true;
+        $_SESSION["role"] = $role;
+        $_SESSION["user_id"] = $user["id"];
+        $_SESSION["username"] = $user["username"];
+
+        return true;
+    }
+
+    return false;
+}
+
+if (tryLogin($pdo, "student", "ID", "student", $username, $password)) {
     header("Location: /Scholarship/app/views/users/student/dashboard.php");
     exit;
 }
 
-
-// 2. Try Sponsor Login
-$stmt = $pdo->prepare("SELECT * FROM sponsor WHERE username = :username LIMIT 1");
-$stmt->execute([":username" => $username]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if ($user && password_verify($password, $user["password"])) {
-
-    $_SESSION["logged_in"] = true;
-    $_SESSION["role"] = "sponsor";
-    $_SESSION["user_id"] = $user["sponsor_ID"];
-    $_SESSION["username"] = $user["username"];
-
+if (tryLogin($pdo, "sponsor", "sponsor_ID", "sponsor", $username, $password)) {
     header("Location: /Scholarship/app/views/users/sponsor/dashboard.php");
     exit;
 }
 
-
-// 3. Try Admin (Admission Officer)
-$stmt = $pdo->prepare("SELECT * FROM admissionofficer WHERE username = :username LIMIT 1");
-$stmt->execute([":username" => $username]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if ($user && password_verify($password, $user["password"])) {
-
-    $_SESSION["logged_in"] = true;
-    $_SESSION["role"] = "admin";
-    $_SESSION["user_id"] = $user["admin_ID"];
-    $_SESSION["username"] = $user["username"];
-
+if (tryLogin($pdo, "admissionofficer", "admin_ID", "admin", $username, $password)) {
     header("Location: /Scholarship/app/views/users/admin/dashboard.php");
     exit;
 }
 
-
-// 4. Try Reviewer (Admission Staff)
-$stmt = $pdo->prepare("SELECT * FROM admissionstaff WHERE username = :username LIMIT 1");
-$stmt->execute([":username" => $username]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if ($user && password_verify($password, $user["password"])) {
-
-    $_SESSION["logged_in"] = true;
-    $_SESSION["role"] = "reviewer";
-    $_SESSION["user_id"] = $user["reviewer_ID"];
-    $_SESSION["username"] = $user["username"];
-
+if (tryLogin($pdo, "admissionstaff", "reviewer_ID", "reviewer", $username, $password)) {
     header("Location: /Scholarship/app/views/users/reviewer/dashboard.php");
     exit;
 }
 
-    header("Location: /Scholarship/app/views/auth/login.php?error=1");
-    exit;
+header("Location: /Scholarship/app/views/auth/login.php?error=1");
+exit;
