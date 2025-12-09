@@ -36,7 +36,7 @@
                 <h1>WELCOME TO</h1>
                 <h1 class="sms">SCHOLARSHIP MANAGEMENT SYSTEM</h1>
                 <p>“Empowering students and schools through effortless scholarship access.”</p>
-                <a href="../app/views/login.php"><button class="apply-btn">APPLY NOW!</button></a>
+                <a href="../app/views/auth/login.php"><button class="apply-btn">APPLY NOW!</button></a>
             </div>
 
             <div class="landingPage-image">

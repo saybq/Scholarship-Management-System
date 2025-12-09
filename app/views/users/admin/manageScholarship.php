@@ -12,38 +12,38 @@
     }
     
 
-$sqlApproved = "
-        SELECT 
-        sp.*, 
-        CONCAT(s.first_Name, ' ', s.middle_Name, ' ', s.last_Name) AS sponsor_name,
-        s.email AS sponsor_email,
-        s.contact_Number AS sponsor_contact,
-        s.sponsor_company AS sponsor_company,
-        s.sponsor_type,
-        CONCAT(r.first_Name, ' ', r.last_Name) AS reviewer_name,
+    $sqlApproved = "
+            SELECT 
+            sp.*, 
+            CONCAT(s.first_Name, ' ', s.middle_Name, ' ', s.last_Name) AS sponsor_name,
+            s.email AS sponsor_email,
+            s.contact_Number AS sponsor_contact,
+            s.sponsor_company AS sponsor_company,
+            s.sponsor_type,
+            CONCAT(r.first_Name, ' ', r.last_Name) AS reviewer_name,
 
-        COUNT(a.application_ID) AS applicants_count  -- NEW FIELD
+            COUNT(a.application_ID) AS applicants_count  -- NEW FIELD
 
-    FROM scholarshipprogram sp
-    LEFT JOIN sponsor s 
-        ON sp.sponsor_ID = s.sponsor_ID
-    LEFT JOIN admissionstaff r
-        ON sp.reviewer_ID = r.reviewer_ID
-    LEFT JOIN application a
-        ON sp.scholarship_ID = a.scholarship_ID  -- COUNT APPLICATIONS
+        FROM scholarshipprogram sp
+        LEFT JOIN sponsor s 
+            ON sp.sponsor_ID = s.sponsor_ID
+        LEFT JOIN admissionstaff r
+            ON sp.reviewer_ID = r.reviewer_ID
+        LEFT JOIN application a
+            ON sp.scholarship_ID = a.scholarship_ID  -- COUNT APPLICATIONS
 
-    WHERE sp.status = 'approved'
-    GROUP BY sp.scholarship_ID
-    ORDER BY sp.scholarship_ID DESC
-";
+        WHERE sp.status = 'approved'
+        GROUP BY sp.scholarship_ID
+        ORDER BY sp.scholarship_ID DESC
+    ";
 
 
-$stmt = $pdo->prepare($sqlApproved);
-$stmt->execute();
-$scholarships = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare($sqlApproved);
+    $stmt->execute();
+    $scholarships = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// FETCH REVIEWERS (IMPORTANT)
-$reviewers = $pdo->query("SELECT reviewer_ID, first_Name, last_Name FROM admissionstaff")->fetchAll();    
+    // FETCH REVIEWERS (IMPORTANT)
+    $reviewers = $pdo->query("SELECT reviewer_ID, first_Name, last_Name FROM admissionstaff")->fetchAll();    
 ?>
 
 <!DOCTYPE html>

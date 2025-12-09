@@ -60,10 +60,11 @@
     JOIN student st
         ON a.student_ID = st.ID
     WHERE s.reviewer_ID = ?
+    AND s.status = ?
     AND a.status = 'pending'
     ORDER BY a.date_applied DESC 
     LIMIT 3");
-    $stmt->execute([$reviewer_ID]);
+    $stmt->execute([$reviewer_ID, "approved"]);
     $pendingList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $totalReviewed = $approved + $rejected;

@@ -1,18 +1,16 @@
 <?php
-session_start();
-require_once __DIR__ . "../../../../core/dbconnection.php";
+    session_start();
+    require_once __DIR__ . "../../../../core/dbconnection.php";
 
-if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] !== true) {
-    header("Location: /Scholarship/app/views/auth/login.php");
-    exit;
-}
-if ($_SESSION["role"] !== "admin") {
-    header("Location: /Scholarship/app/views/auth/login.php");
-    exit;
-}
+    if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] !== true) {
+        header("Location: /Scholarship/app/views/auth/login.php");
+        exit;
+    }
+    if ($_SESSION["role"] !== "admin") {
+        header("Location: /Scholarship/app/views/auth/login.php");
+        exit;
+    }
 
-// FETCH PENDING SCHOLARSHIPS
-try {
     $stmt = $pdo->prepare("
         SELECT 
             sp.scholarship_ID,
@@ -31,10 +29,6 @@ try {
 
     $stmt->execute();
     $pendingList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-} catch (PDOException $e) {
-    die("Database error: " . $e->getMessage());
-}
 ?>
 
 <!DOCTYPE html>

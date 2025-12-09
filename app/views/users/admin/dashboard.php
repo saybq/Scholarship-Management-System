@@ -15,27 +15,27 @@
     //--------------TOP STATS------------------------
     // Pending scholarships
     $pendingScholarships = $pdo->query("
-        SELECT COUNT(*) 
+        SELECT COUNT(scholarship_ID) 
         FROM scholarshipprogram 
         WHERE status = 'pending'
     ")->fetchColumn();
 
     // Active scholarships
     $activeScholarships = $pdo->query("
-        SELECT COUNT(*) 
+        SELECT COUNT(scholarship_ID) 
         FROM scholarshipprogram 
         WHERE status = 'approved'
     ")->fetchColumn();
 
     // Total students
     $totalStudents = $pdo->query("
-        SELECT COUNT(*) 
+        SELECT COUNT(ID) 
         FROM student
     ")->fetchColumn();
 
     // Total sponsors
     $totalSponsors = $pdo->query("
-        SELECT COUNT(*) 
+        SELECT COUNT(sponsor_ID) 
         FROM sponsor
     ")->fetchColumn();
 
@@ -58,7 +58,7 @@
     //--------------SYSTEM STATISTICS------------------------
     // Total Applications
     $totalApplications = $pdo->query("
-        SELECT COUNT(*) 
+        SELECT COUNT(application_ID) 
         FROM application
     ")->fetchColumn();
 
@@ -73,7 +73,7 @@
 
     // Approval Rate
     $approvedCount = $pdo->query("
-        SELECT COUNT(*) 
+        SELECT COUNT(application_ID) 
         FROM application
         WHERE status = 'approved'
     ")->fetchColumn();

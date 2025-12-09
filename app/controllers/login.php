@@ -31,7 +31,7 @@ function tryLogin($pdo, $table, $userIdField, $role, $username, $password) {
         return true;
     }
 
-    return false;
+    return false;   
 }
 
 if (tryLogin($pdo, "student", "ID", "student", $username, $password)) {

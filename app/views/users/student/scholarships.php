@@ -61,7 +61,6 @@
     <!-- Sidebar -->
     <?php include __DIR__ . '/../../assets/components/studentSidebar.php'; ?>
 
-    <!-- Main Content -->
     <main class="flex-1 p-6">
 
         <!-- Page Header -->
@@ -115,7 +114,6 @@
                         </div>
 
                         <?php
-                            // Check if the student already applied — safe version
                             $check = $pdo->prepare("
                                 SELECT 1 FROM application
                                 WHERE student_ID = ? AND scholarship_ID = ?

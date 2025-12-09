@@ -23,12 +23,13 @@ $sqlPrograms = "
         s.sponsor_company
     FROM scholarshipprogram sp
     LEFT JOIN sponsor s ON sp.sponsor_ID = s.sponsor_ID
-    WHERE sp.reviewer_ID = ?
+    WHERE sp.reviewer_ID = ? 
+    AND sp.status = ?
     AND sp.deadline >= CURDATE()
 ";
 
 $stmtPrograms = $pdo->prepare($sqlPrograms);
-$stmtPrograms->execute([$reviewer_ID]);
+$stmtPrograms->execute([$reviewer_ID, "approved"]);
 $programs = $stmtPrograms->fetchAll(PDO::FETCH_ASSOC);
 
 // ------------------------------------------------------------
@@ -81,7 +82,7 @@ if (isset($_GET["program"])) {
 
     <main class="flex-1 p-8">
 
-        <!-- PAGE 1: PROGRAM LIST -->
+        <!-- PROGRAM LIST -->
         <section id="programList" class="<?= isset($_GET['program']) ? 'hidden' : '' ?>">
             <h1 class="text-2xl font-semibold">Assigned Programs</h1>
             <p class="text-gray-500 mt-1 mb-6 text-sm">List of All Scholarship Programs Assigned to you</p>
@@ -156,7 +157,7 @@ if (isset($_GET["program"])) {
             <?php endforeach; ?>
         </section>
 
-        <!-- PAGE 2: APPLICATIONS -->
+        <!-- APPLICATIONS -->
         <section id="programApplications" class="<?= isset($_GET['program']) ? '' : 'hidden' ?>">
 
             <a href="assignedPrograms.php" class="flex items-center gap-1 text-gray-600 mb-6 hover:text-gray-800">

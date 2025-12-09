@@ -44,15 +44,6 @@
                 >
             </div>
 
-            <div class="flex items-center justify-between text-sm">
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" class="accent-black">
-                    <span>Remember me</span>
-                </label>
-
-                <a href="#" class="text-blue-600 hover:underline">Forgot password?</a>
-            </div>
-
             <button 
                 type="submit" 
                 class="w-full mt-4 bg-black text-white py-2 rounded-lg hover:opacity-80 transition"

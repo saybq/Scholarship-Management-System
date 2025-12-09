@@ -1,109 +1,100 @@
 <?php
-session_start();
-require_once __DIR__ . "../../../../core/dbconnection.php";
+    session_start();
+    require_once __DIR__ . "../../../../core/dbconnection.php";
 
-if (!isset($_SESSION["logged_in"]) || $_SESSION["role"] !== "student") {
-    header("Location: ../auth/login.php");
-    exit;
-}
+    if (!isset($_SESSION["logged_in"]) || $_SESSION["role"] !== "student") {
+        header("Location: ../auth/login.php");
+        exit;
+    }
 
-$studentID = $_SESSION["user_id"];
+    $studentID = $_SESSION["user_id"];
 
-/* =============================
-   UPCOMING DEADLINES
-============================= */
-$stmtDeadlines = $pdo->prepare("
-    SELECT scholarship_Name, deadline
-    FROM scholarshipprogram
-    WHERE status = 'approved'
-      AND deadline >= CURDATE()
-    ORDER BY deadline ASC
-    LIMIT 5
-");
-$stmtDeadlines->execute();
-$deadlines = $stmtDeadlines->fetchAll(PDO::FETCH_ASSOC);
+    //UPCOMING DEADLINES
+    $stmtDeadlines = $pdo->prepare("
+        SELECT scholarship_Name, deadline
+        FROM scholarshipprogram
+        WHERE status = 'approved'
+        AND deadline >= CURDATE()
+        ORDER BY deadline ASC
+        LIMIT 5
+    ");
+    $stmtDeadlines->execute();
+    $deadlines = $stmtDeadlines->fetchAll(PDO::FETCH_ASSOC);
 
-/* =============================
-   RECENT ACTIVITY
-============================= */
-$stmtActivity = $pdo->prepare("
-    SELECT a.status, a.date_applied, s.scholarship_Name
-    FROM application a
-    INNER JOIN scholarshipprogram s 
-        ON a.scholarship_ID = s.scholarship_ID
-    WHERE a.student_ID = ?
-    ORDER BY a.date_applied DESC
-    LIMIT 5
-");
-$stmtActivity->execute([$studentID]);
-$activities = $stmtActivity->fetchAll(PDO::FETCH_ASSOC);
+    //RECENT ACTIVITY
+    $stmtActivity = $pdo->prepare("
+        SELECT a.status, a.date_applied, s.scholarship_Name
+        FROM application a
+        INNER JOIN scholarshipprogram s 
+            ON a.scholarship_ID = s.scholarship_ID
+        WHERE a.student_ID = ?
+        ORDER BY a.date_applied DESC
+        LIMIT 5
+    ");
+    $stmtActivity->execute([$studentID]);
+    $activities = $stmtActivity->fetchAll(PDO::FETCH_ASSOC);
 
-/* =============================
-   TOP STATS
-============================= */
+    //TOP STATS------
 
-// AVAILABLE SCHOLARSHIPS
-$stmtAvailable = $pdo->prepare("
-    SELECT COUNT(scholarship_ID)
-    FROM scholarshipprogram
-    WHERE status = 'approved'
-");
-$stmtAvailable->execute();
-$available = $stmtAvailable->fetchColumn();
+    // AVAILABLE SCHOLARSHIPS
+    $stmtAvailable = $pdo->prepare("
+        SELECT COUNT(scholarship_ID)
+        FROM scholarshipprogram
+        WHERE status = 'approved'
+    ");
+    $stmtAvailable->execute();
+    $available = $stmtAvailable->fetchColumn();
 
-// PENDING
-$stmtPending = $pdo->prepare("
-    SELECT COUNT(application_ID)
-    FROM application
-    WHERE student_ID = ? AND status = 'pending'
-");
-$stmtPending->execute([$studentID]);
-$pending = $stmtPending->fetchColumn();
+    // PENDING
+    $stmtPending = $pdo->prepare("
+        SELECT COUNT(application_ID)
+        FROM application
+        WHERE student_ID = ? AND status = 'pending'
+    ");
+    $stmtPending->execute([$studentID]);
+    $pending = $stmtPending->fetchColumn();
 
-// APPROVED
-$stmtApproved = $pdo->prepare("
-    SELECT COUNT(application_ID)
-    FROM application
-    WHERE student_ID = ? AND status = 'approved'
-");
-$stmtApproved->execute([$studentID]);
-$approved = $stmtApproved->fetchColumn();
+    // APPROVED
+    $stmtApproved = $pdo->prepare("
+        SELECT COUNT(application_ID)
+        FROM application
+        WHERE student_ID = ? AND status = 'approved'
+    ");
+    $stmtApproved->execute([$studentID]);
+    $approved = $stmtApproved->fetchColumn();
 
-// REJECTED
-$stmtRejected = $pdo->prepare("
-    SELECT COUNT(application_ID)
-    FROM application
-    WHERE student_ID = ? AND status = 'rejected'
-");
-$stmtRejected->execute([$studentID]);
-$rejected = $stmtRejected->fetchColumn();
+    // REJECTED
+    $stmtRejected = $pdo->prepare("
+        SELECT COUNT(application_ID)
+        FROM application
+        WHERE student_ID = ? AND status = 'rejected'
+    ");
+    $stmtRejected->execute([$studentID]);
+    $rejected = $stmtRejected->fetchColumn();
 
-/* =============================
-   STATISTICS SECTION
-============================= */
+    //STATISTICS SECTION-------
 
-// TOTAL SCHOLARSHIPS APPLIED
-$stmtSubmitted = $pdo->prepare("
-    SELECT COUNT(application_ID)
-    FROM application
-    WHERE student_ID = ?
-");
-$stmtSubmitted->execute([$studentID]);
-$submitted = $stmtSubmitted->fetchColumn();
+    // TOTAL SCHOLARSHIPS APPLIED
+    $stmtSubmitted = $pdo->prepare("
+        SELECT COUNT(application_ID)
+        FROM application
+        WHERE student_ID = ?
+    ");
+    $stmtSubmitted->execute([$studentID]);
+    $submitted = $stmtSubmitted->fetchColumn();
 
-// TOTAL AWARDS (SUM OF AMOUNT OF APPROVED SCHOLARSHIPS)
-$stmtAwards = $pdo->prepare("
-    SELECT SUM(sp.Amount)
-    FROM application a
-    INNER JOIN scholarshipprogram sp
-        ON a.scholarship_ID = sp.scholarship_ID
-    WHERE a.student_ID = ? AND a.status = 'approved'
-");
-$stmtAwards->execute([$studentID]);
-$totalAwards = $stmtAwards->fetchColumn() ?? 0;
+    // TOTAL AWARDS (SUM OF AMOUNT OF APPROVED SCHOLARSHIPS)
+    $stmtAwards = $pdo->prepare("
+        SELECT SUM(sp.Amount)
+        FROM application a
+        INNER JOIN scholarshipprogram sp
+            ON a.scholarship_ID = sp.scholarship_ID
+        WHERE a.student_ID = ? AND a.status = 'approved'
+    ");
+    $stmtAwards->execute([$studentID]);
+    $totalAwards = $stmtAwards->fetchColumn() ?? 0;
 
-// SUCCESS RATE
-$successRate = ($submitted > 0) ? round(($approved / $submitted) * 100) : 0;
+    $successRate = ($submitted > 0) ? round(($approved / $submitted) * 100) : 0;
 ?>
 
 <!DOCTYPE html>

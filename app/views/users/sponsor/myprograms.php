@@ -7,17 +7,26 @@
         exit;
     }
 
-    // Check correct role
     if ($_SESSION["role"] !== "sponsor") {
         header("Location: /Scholarship/app/views/auth/login.php");
         exit;
     }
 
     $sponsorID = $_SESSION["user_id"];
+
     // ========== PENDING PROGRAMS ==========
-    $sql = "SELECT * FROM scholarshipprogram
-            WHERE sponsor_ID = :sid AND status = 'pending'
-            ORDER BY scholarship_ID DESC";
+    $sql = "
+        SELECT 
+            scholarship_ID,
+            scholarship_Name AS scholarship_name,
+            description,
+            Amount,
+            requirements,
+            deadline,
+            dateof_creation
+        FROM scholarshipprogram
+        WHERE sponsor_ID = :sid AND status = 'pending'
+        ORDER BY scholarship_ID DESC";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([":sid" => $sponsorID]);
@@ -25,9 +34,18 @@
     $pendingScholarships = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // ========== APPROVED PROGRAMS ==========
-    $sqlApproved = "SELECT * FROM scholarshipprogram
-                WHERE sponsor_ID = :sid AND status = 'approved'
-                ORDER BY scholarship_ID DESC";
+    $sqlApproved = "
+        SELECT 
+            scholarship_ID,
+            scholarship_Name AS scholarship_name,
+            description,
+            Amount,
+            requirements,
+            deadline,
+            dateof_creation
+        FROM scholarshipprogram
+        WHERE sponsor_ID = :sid AND status = 'approved'
+        ORDER BY scholarship_ID DESC";
 
     $stmtApproved = $pdo->prepare($sqlApproved);
     $stmtApproved->execute([":sid" => $sponsorID]);
@@ -35,26 +53,24 @@
     $approvedScholarships = $stmtApproved->fetchAll(PDO::FETCH_ASSOC);
 
     // ========== REJECTED PROGRAMS ==========
-$sqlRejected = "
-    SELECT 
-        scholarship_ID,
-        scholarship_Name AS scholarship_name,
-        description,
-        Amount AS amount,
-        requirements,
-        deadline,
-        dateof_creation AS created_at,
-        note AS rejection_reason
-    FROM scholarshipprogram
-    WHERE sponsor_ID = :sid AND status = 'rejected'
-    ORDER BY scholarship_ID DESC
-";
+    $sqlRejected = "
+        SELECT 
+            scholarship_ID,
+            scholarship_Name AS scholarship_name,
+            description,
+            Amount,
+            requirements,
+            deadline,
+            dateof_creation,
+            note AS rejection_reason
+        FROM scholarshipprogram
+        WHERE sponsor_ID = :sid AND status = 'rejected'
+        ORDER BY scholarship_ID DESC";
 
-$stmtRejected = $pdo->prepare($sqlRejected);
-$stmtRejected->execute([":sid" => $sponsorID]);
+    $stmtRejected = $pdo->prepare($sqlRejected);
+    $stmtRejected->execute([":sid" => $sponsorID]);
 
-$rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
-
+    $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -71,13 +87,11 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="flex min-h-screen">
 
-            <!-- Sidebar -->
-            <?php include __DIR__ . '/../../assets/components/sponsorSidebar.php'; ?>
+        <!-- Sidebar -->
+        <?php include __DIR__ . '/../../assets/components/sponsorSidebar.php'; ?>
 
-            <!-- Main Content -->
             <main class="flex-1 p-6">
 
-                    <!-- TOP PAGE TITLE -->
                     <div class="flex justify-between mb-4">
                         <div>
                             <h2 class="text-2xl font-bold">My Programs</h2>
@@ -144,7 +158,7 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="p-4 border rounded-xl shadow flex justify-between items-start bg-white transition mb-4">
 
                                                 <div>
-                                                    <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_Name']) ?></h3>
+                                                    <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_name']) ?></h3>
 
                                                     <p class="text-gray-500 text-sm mb-2">
                                                         <?= htmlspecialchars($sc['description']) ?>
@@ -152,19 +166,16 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
 
                                                     <div class="flex items-center gap-4 text-sm text-gray-600">
 
-                                                        <!-- Amount -->
                                                         <div class="flex items-center gap-1">
                                                             <span class="material-symbols-outlined text-base">payments</span>
                                                             ₱<?= number_format($sc['Amount'], 2) ?>/year
                                                         </div>
 
-                                                        <!-- Deadline -->
                                                         <div class="flex items-center gap-1">
                                                             <span class="material-symbols-outlined text-base text-orange-500">event</span>
                                                             Deadline: <?= date("M d, Y", strtotime($sc['deadline'])) ?>
                                                         </div>
 
-                                                        <!-- Created date -->
                                                         <div class="flex items-center gap-1">
                                                             <span class="material-symbols-outlined text-base">schedule</span>
                                                             Created: <?= date("M d, Y", strtotime($sc['dateof_creation'])) ?>
@@ -172,7 +183,6 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
                                                     </div>
                                                 </div>
 
-                                                <!-- STATUS BADGE -->
                                                 <div>
                                                     <span class="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 font-medium">
                                                         Pending
@@ -198,7 +208,7 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
                                         <div class="p-4 border rounded-xl shadow-sm flex justify-between items-start hover:bg-gray-50 transition mb-4">
 
                                             <div>
-                                                <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_Name']) ?></h3>
+                                                <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_name']) ?></h3>
 
                                                 <p class="text-gray-500 text-sm mb-2">
                                                     <?= htmlspecialchars($sc['description']) ?>
@@ -206,19 +216,16 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
 
                                                 <div class="flex items-center gap-4 text-sm text-gray-600">
 
-                                                    <!-- Amount -->
                                                     <div class="flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-base">payments</span>
                                                         ₱<?= number_format($sc['Amount'], 2) ?>/year
                                                     </div>
 
-                                                    <!-- Deadline -->
                                                     <div class="flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-base text-orange-500">event</span>
                                                         Deadline: <?= date("M d, Y", strtotime($sc['deadline'])) ?>
                                                     </div>
 
-                                                    <!-- Created date -->
                                                     <div class="flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-base">schedule</span>
                                                         Created: <?= date("M d, Y", strtotime($sc['dateof_creation'])) ?>
@@ -226,7 +233,6 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
                                                 </div>
                                             </div>
 
-                                            <!-- STATUS BADGE -->
                                             <div>
                                                 <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">
                                                     Approved
@@ -266,7 +272,7 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
                                                     <!-- Amount -->
                                                     <div class="flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-base">payments</span>
-                                                        ₱<?= number_format($sc['amount'], 2) ?>/year
+                                                        ₱<?= number_format($sc['Amount'], 2) ?>/year
                                                     </div>
 
                                                     <!-- Deadline -->
@@ -278,7 +284,7 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
                                                     <!-- Created -->
                                                     <div class="flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-base">schedule</span>
-                                                        Created: <?= date("M d, Y", strtotime($sc['created_at'])) ?>
+                                                        Created: <?= date("M d, Y", strtotime($sc['dateof_creation'])) ?>
                                                     </div>
 
                                                 </div>
@@ -436,9 +442,7 @@ $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
                             cancelForm2.addEventListener("click", hideForm);
                         });
                     </script>
-
             </main>
-
     </div>
 
 </body>

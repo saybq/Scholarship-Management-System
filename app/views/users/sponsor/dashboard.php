@@ -7,7 +7,6 @@
         exit;
     }
 
-    // Check correct role
     if ($_SESSION["role"] !== "sponsor") {
         header("Location: /Scholarship/app/views/auth/login.php");
         exit;
@@ -15,51 +14,64 @@
 
     $sponsorID = $_SESSION["user_id"];
 
-    // Total programs
-    $stmtPrograms = $pdo->prepare("SELECT COUNT(*) FROM scholarshipprogram WHERE sponsor_ID = ?");
+    $stmtPrograms = $pdo->prepare("
+        SELECT COUNT(scholarship_ID) AS total_programs
+        FROM scholarshipprogram 
+        WHERE sponsor_ID = ?");
+
     $stmtPrograms->execute([$sponsorID]);
     $totalPrograms = $stmtPrograms->fetchColumn();
 
-    // Approved
-    $stmtApproved = $pdo->prepare("SELECT COUNT(*) FROM scholarshipprogram WHERE sponsor_ID = ? AND status = 'approved'");
+    $stmtApproved = $pdo->prepare("
+        SELECT COUNT(scholarship_ID) AS approved_programs
+        FROM scholarshipprogram 
+        WHERE sponsor_ID = ? AND status = 'approved'");
+
     $stmtApproved->execute([$sponsorID]);
     $approved = $stmtApproved->fetchColumn();
 
-    // Pending
-    $stmtPending = $pdo->prepare("SELECT COUNT(*) FROM scholarshipprogram WHERE sponsor_ID = ? AND status = 'pending'");
+    $stmtPending = $pdo->prepare("
+        SELECT COUNT(scholarship_ID) AS pending_programs
+        FROM scholarshipprogram 
+        WHERE sponsor_ID = ? AND status = 'pending'");
+
     $stmtPending->execute([$sponsorID]);
     $pending = $stmtPending->fetchColumn();
 
-    // Rejected
-    $stmtRejected = $pdo->prepare("SELECT COUNT(*) FROM scholarshipprogram WHERE sponsor_ID = ? AND status = 'rejected'");
+    $stmtRejected = $pdo->prepare("
+        SELECT COUNT(scholarship_ID) AS rejected_programs
+        FROM scholarshipprogram 
+        WHERE sponsor_ID = ? AND status = 'rejected'");
+
     $stmtRejected->execute([$sponsorID]);
     $rejected = $stmtRejected->fetchColumn();
 
     $stmtRecent = $pdo->prepare("
-        SELECT scholarship_Name, status, dateof_creation 
+        SELECT scholarship_Name, status, dateof_creation
         FROM scholarshipprogram
         WHERE sponsor_ID = ?
         ORDER BY dateof_creation DESC
         LIMIT 3");
+        
     $stmtRecent->execute([$sponsorID]);
     $recentPrograms = $stmtRecent->fetchAll(PDO::FETCH_ASSOC);
 
-    // --- 1. Total Applicants ---
     $stmtApplicants = $pdo->prepare("
-        SELECT COUNT(*) AS total_applicants
-        FROM application a
-        JOIN scholarshipprogram s ON a.scholarship_ID = s.scholarship_ID
+        SELECT COUNT(a.application_ID) AS total_applicants
+        FROM application AS a
+        JOIN scholarshipprogram AS s 
+            ON a.scholarship_ID = s.scholarship_ID
         WHERE s.sponsor_ID = ?");
+
     $stmtApplicants->execute([$sponsorID]);
     $total_applicants = $stmtApplicants->fetch(PDO::FETCH_ASSOC)['total_applicants'];
 
-    // --- 2. Total Funds Committed ---
     $stmtFunds = $pdo->prepare("
         SELECT SUM(Amount) AS total_funds
         FROM scholarshipprogram
         WHERE sponsor_ID = ? 
-        AND status = 'approved'
-    ");
+        AND status = 'approved'");
+        
     $stmtFunds->execute([$sponsorID]);
     $total_funds = $stmtFunds->fetch(PDO::FETCH_ASSOC)['total_funds'] ?? 0;
 ?>
@@ -110,7 +122,7 @@
                         <span class="material-symbols-outlined text-base ml-auto text-gray-600">license</span>
                     </div>
 
-                    <p class="text-2xl font-bold mt-1"><?= $totalPrograms ?></p>
+                    <p class="text-2xl font-bold mt-1"> <?= $totalPrograms ?></p>
                     <p class="text-gray-400 text-xs">Programs created</p>
 
                 </div>
@@ -164,6 +176,7 @@
                             <p class="text-gray-500 text-sm">No recent programs found.</p>
                         <?php else: ?>
                             <?php foreach ($recentPrograms as $program): ?>
+
                                 <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
                                     <div>
                                         <p class="font-medium"><?= htmlspecialchars($program['scholarship_Name']) ?></p>
@@ -185,6 +198,7 @@
                                         <?= htmlspecialchars($status) ?>
                                     </span>
                                 </div>
+
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
