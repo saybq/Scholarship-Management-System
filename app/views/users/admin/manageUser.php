@@ -53,32 +53,11 @@
 </head>
 
 <body class="bg-gray-50">
-    <?php if (isset($_GET['created']) && $_GET['created'] == 1): ?>
-        <script>alert("User created successfully!");</script>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['deleted']) && $_GET['deleted'] == 1): ?>
-        <script>alert("User deleted successfully!");</script>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['delete_error'])): ?>
-        <script>alert("Failed to delete user!");</script>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['updated']) && $_GET['updated'] == 1): ?>
-        <script>alert("User updated successfully!");</script>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['update_error'])): ?>
-        <script>alert("Failed to Update Username or Password");</script>
-    <?php endif; ?>
+    <?php include __DIR__ . '/alerts.php'; ?>
 
     <div class="flex min-h-screen">
-
-        <!-- Sidebar -->
         <?php include __DIR__ . '/../../assets/components/adminSidebar.php'; ?>
 
-        <!-- MAIN CONTENT -->
         <main class="flex-1 p-6">
 
             <!-- HEADER -->

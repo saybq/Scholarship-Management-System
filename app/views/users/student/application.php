@@ -57,7 +57,6 @@
     $rejected->execute([$studentID]);
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>

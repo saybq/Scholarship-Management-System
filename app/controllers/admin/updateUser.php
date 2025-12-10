@@ -51,7 +51,6 @@
     }
 
     try {
-        // If password field is empty → only update username
         if ($password === "") {
 
             $stmt = $pdo->prepare("
