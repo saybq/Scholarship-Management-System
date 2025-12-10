@@ -90,11 +90,8 @@
 <body class="bg-gray-50 ">
 
     <div class="flex min-h-screen">
-
-        <!-- Sidebar -->
         <?php include __DIR__ . '/../../assets/components/sponsorSidebar.php'; ?>
 
-        <!-- Main Content -->
         <main class="flex-1 p-6">
 
             <div class="flex justify-between mb-4">
@@ -103,60 +100,47 @@
                     <p class="text-gray-500 text-sm">Welcome back, <?php echo $_SESSION["username"]; ?></p>
                 </div>
 
-                <!-- Taller button -->
                 <a href="myprograms.php"
                     class="h-8 px-5 bg-[#00bc7d] text-white font-bold rounded-md shadow text-xs flex items-center hover:bg-green-600 rounded-md shadow inline-flex items-center">
                     Create Program
                 </a>
-
-
             </div>
 
-            <!-- Top Stats -->
+            <!-- Top Statatistics -->
             <div class="grid grid-cols-4 gap-4 mb-6">
 
-                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm">
-
-                    <div class="flex items-center">
-                        <h3 class="text-gray-500 font-medium">Total Scholarships</h3>
-                        <span class="material-symbols-outlined text-base ml-auto text-gray-600">license</span>
-                    </div>
-
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#6b7280,0_1px_2px_rgba(0,0,0,0.05)]">
+                    <p class="text-gray-500 font-medium flex items-center">Total Scholarships
+                        <span class="material-symbols-outlined text-base ml-auto text-gray-600 ml-auto">license</span>
+                    </p>
+                    
                     <p class="text-2xl font-bold mt-1"> <?= $totalPrograms ?></p>
                     <p class="text-gray-400 text-xs">Programs created</p>
 
                 </div>
 
-
-                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm">
-                
-                    <div class="flex items-center">
-                        <h3 class="text-gray-500 font-medium">Approved</h3>
-                    <span class="material-symbols-outlined text-base ml-auto text-green-600">task_alt</span>
-                    </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm  [box-shadow:inset_4px_0_0_#16a34a,0_1px_2px_rgba(0,0,0,0.05)]">
+                    <p class="text-gray-500 font-medium flex items-center">Approved
+                        <span class="material-symbols-outlined text-base ml-auto text-green-600">task_alt</span>
+                    </p>
 
                     <p class="text-2xl font-bold mt-1"><?= $approved ?></p>
                     <p class="text-gray-400 text-xs">Active programs</p>
                 </div>
 
-                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm">
-                    
-
-                    <div class="flex items-center">
-                        <h3 class="text-gray-500 font-medium">Pending Approval</h3>
-                    <span class="material-symbols-outlined text-base ml-auto text-yellow-600">schedule</span>
-                    </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#facc15,0_1px_2px_rgba(0,0,0,0.05)]">
+                    <p class="text-gray-500 font-medium flex items=center">Pending Approval
+                        <span class="material-symbols-outlined text-base ml-auto text-yellow-600 ml-auto">schedule</span>
+                    </p>
 
                     <p class="text-2xl font-bold mt-1"><?= $pending ?></p>
                     <p class="text-gray-400 text-xs">Awaiting admin review</p>
                 </div>
 
-                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm">
-
-                    <div class="flex items-center">
-                        <h3 class="text-gray-500 font-medium">Rejected</h3>
-                    <span class="material-symbols-outlined text-base ml-auto text-red-600">cancel</span>
-                    </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#dc2626,0_1px_2px_rgba(0,0,0,0.05)]">
+                    <p class="text-gray-500 font-medium flex items=center">Rejected
+                        <span class="material-symbols-outlined text-base ml-auto text-red-600 ml-auto">cancel</span>
+                    </p>
                     
                     <p class="text-2xl font-bold mt-1"><?= $rejected ?></p>
                     <p class="text-gray-400 text-xs">Needs revision</p>
@@ -177,7 +161,7 @@
                         <?php else: ?>
                             <?php foreach ($recentPrograms as $program): ?>
 
-                                <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
+                                <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center border">
                                     <div>
                                         <p class="font-medium"><?= htmlspecialchars($program['scholarship_Name']) ?></p>
                                         <p class="text-xs text-gray-500">
@@ -231,9 +215,6 @@
 
                     </div>
                 </div>
-
-
-            </div>
 
 
             </div>

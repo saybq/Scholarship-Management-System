@@ -6,10 +6,9 @@
             exit;
         }
 
-        // Check correct role
-        if ($_SESSION["role"] !== "admin") {
-            header("Location: /Scholarship/app/views/auth/login.php");
-            exit;
+    if ($_SESSION["role"] !== "admin") {
+        header("Location: /Scholarship/app/views/auth/login.php");
+        exit;
     }
 
     //--------------TOP STATS------------------------
@@ -95,57 +94,53 @@
 <body class="bg-gray-50 ">
 
     <div class="flex min-h-screen">
-
         <?php include __DIR__ . '/../../assets/components/adminSidebar.php'; ?>
         
-        <!-- Main Content -->
         <main class="flex-1 p-6">
-                        <!-- Page Title -->
+
             <div class="mb-6">
                 <h1 class="text-2xl font-semibold">Dashboard</h1>
                 <p class="text-gray-500 text-sm">System Administration Overview</p>
             </div>
 
-            <!-- Top Stats -->
+            <!-- Top Statatistics -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
 
                 <!-- Pending Scholarships -->
-                <div class="bg-white p-5 rounded-xl shadow border">
-                    <p class="text-sm font-medium text-gray-600 flex items-center gap-1">
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#facc15,0_1px_2px_rgba(0,0,0,0.08)]">
+                    <p class="text-sm font-medium text-gray-600 flex items-center">
                         Pending Scholarships
-                        <span class="material-symbols-outlined text-yellow-500 text-sm">schedule</span>
+                        <span class="material-symbols-outlined text-yellow-500 text-sm ml-auto">schedule</span>
                     </p>
-                    <p class="text-3xl font-bold mt-2"><?= $pendingScholarships ?></p>
+
+                    <p class="text-2xl font-bold mt-2"><?= $pendingScholarships ?></p>
                     <p class="text-gray-400 text-xs">Awaiting approval</p>
                 </div>
 
-                <!-- Active Scholarships -->
-                <div class="bg-white p-5 rounded-xl shadow border">
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#16a34a,0_1px_2px_rgba(0,0,0,0.08)]">
                     <p class="text-sm font-medium text-gray-600 flex items-center gap-1">
                         Active Scholarships
-                        <span class="material-symbols-outlined text-green-600 text-sm">workspace_premium</span>
+                        <span class="material-symbols-outlined text-green-600 text-sm ml-auto">workspace_premium</span>
                     </p>
-                    <p class="text-3xl font-bold mt-2"><?= $activeScholarships ?></p>
+                    <p class="text-2xl font-bold mt-2"><?= $activeScholarships ?></p>
                     <p class="text-gray-400 text-xs">Total programs</p>
                 </div>
 
-                <!-- Total Students -->
-                <div class="bg-white p-5 rounded-xl shadow border">
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm  [box-shadow:inset_4px_0_0_#3b82f6,0_1px_2px_rgba(0,0,0,0.08)]">
                     <p class="text-sm font-medium text-gray-600 flex items-center gap-1">
                         Total Students
-                        <span class="material-symbols-outlined text-blue-600 text-sm">school</span>
+                        <span class="material-symbols-outlined text-blue-600 text-sm ml-auto">school</span>
                     </p>
-                    <p class="text-3xl font-bold mt-2"><?= $totalStudents ?></p>
+                    <p class="text-2xl font-bold mt-2"><?= $totalStudents ?></p>
                     <p class="text-gray-400 text-xs">Registered students</p>
                 </div>
 
-                <!-- Total Sponsors -->
-                <div class="bg-white p-5 rounded-xl shadow border">
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm  [box-shadow:inset_4px_0_0_#059669,0_1px_2px_rgba(0,0,0,0.08)]">
                     <p class="text-sm font-medium text-gray-600 flex items-center gap-1">
                         Total Sponsors
-                        <span class="material-symbols-outlined text-emerald-600 text-sm">groups</span>
+                        <span class="material-symbols-outlined text-emerald-600 text-sm ml-auto">groups</span>
                     </p>
-                    <p class="text-3xl font-bold mt-2"><?= $totalSponsors ?></p>
+                    <p class="text-2xl font-bold mt-2"><?= $totalSponsors ?></p>
                     <p class="text-gray-400 text-xs">Active sponsors</p>
                 </div>
 

@@ -7,6 +7,11 @@
         exit;
     }
 
+    if ($_SESSION["role"] !== "student") {
+        header("Location: /Scholarship/app/views/auth/login.php");
+        exit;
+    }
+
     $studentID = $_SESSION["user_id"];
 
     //UPCOMING DEADLINES
@@ -109,137 +114,143 @@
 <body class="bg-gray-50">
 
 <div class="flex min-h-screen">
-
     <?php include __DIR__ . '/../../assets/components/studentSidebar.php'; ?>
 
-    <main class="flex-1 p-6">
+        <main class="flex-1 p-6">
 
-        <!-- HEADER -->
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold">Dashboard</h2>
-            <p class="text-gray-500 text-sm">Welcome back, Student</p>
-        </div>
-
-        <!-- TOP CARDS -->
-        <div class="grid grid-cols-4 gap-4 mb-6">
-
-            <div class="bg-white border rounded-xl p-4 shadow">
-                <p class="font-semibold">Available Scholarships</p>
-                <p class="text-3xl font-bold mt-2"><?= $available ?></p>
-                <p class="text-xs text-gray-500">Open for applications</p>
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold">Dashboard</h2>
+                <p class="text-gray-500 text-sm">Welcome back, Student</p>
             </div>
 
-            <div class="bg-white border rounded-xl p-4 shadow">
-                <p class="font-semibold">Pending Review</p>
-                <p class="text-3xl font-bold mt-2"><?= $pending ?></p>
-                <p class="text-xs text-gray-500">Awaiting decision</p>
+            <!-- TOP STATISTICS -->
+            <div class="grid grid-cols-4 gap-4 mb-6 text-xs">
+
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#3b82f6,0_1px_2px_rgba(0,0,0,0.05)]">
+                    <p class="font-semibold flex items-center">Available Scholarships
+                        <span class="material-symbols-outlined text-blue-600 text-base ml-auto">school</span>
+                    </p>
+                    <p class="text-2xl font-bold mt-2"><?= $available ?></p>
+                    <p class="text-xs text-gray-500">Open for applications</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#facc15,0_1px_2px_rgba(0,0,0,0.05)]">
+                    <p class="font-semibold flex items-center">Pending Review
+                        <span class="material-symbols-outlined text-yellow-500 text-base ml-auto">schedule</span>
+                    </p>
+                    <p class="text-2xl font-bold mt-2"><?= $pending ?></p>
+                    <p class="text-xs text-gray-500">Awaiting decision</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#16a34a,0_1px_2px_rgba(0,0,0,0.05)]">
+                    <p class="font-semibold flex items-center">Approved
+                        <span class="material-symbols-outlined text-green-600 text-base ml-auto">task_alt</span>
+                    </p>
+                    <p class="text-2xl font-bold mt-2"><?= $approved ?></p>
+                    <p class="text-xs text-gray-500">Scholarships awarded</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#dc2626,0_1px_2px_rgba(0,0,0,0.05)]">
+                    <p class="font-semibold flex items-center">Rejected Applications
+                        <span class="material-symbols-outlined text-red-500 text-base ml-auto">cancel</span>
+                    </p>
+                    <p class="text-2xl font-bold mt-2"><?= $rejected ?></p>
+                    <p class="text-xs text-gray-500">Applications not approved</p>
+                </div>
+
             </div>
 
-            <div class="bg-white border rounded-xl p-4 shadow">
-                <p class="font-semibold">Approved</p>
-                <p class="text-3xl font-bold mt-2"><?= $approved ?></p>
-                <p class="text-xs text-gray-500">Scholarships awarded</p>
-            </div>
+            <!-- SECOND ROW (2 COLUMNS) -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
 
-            <div class="bg-white border rounded-xl p-4 shadow">
-                <p class="font-semibold">Rejected Applications</p>
-                <p class="text-3xl font-bold mt-2"><?= $rejected ?></p>
-                <p class="text-xs text-gray-500">Applications not approved</p>
-            </div>
+                <!-- UPCOMING DEADLINES -->
+                <div class="bg-white border rounded-xl p-4 shadow">
+                    <p class="font-semibold">Upcoming Deadlines</p>
+                    <p class="text-gray-500 text-sm mb-4">Scholarships closing soon</p>
 
-        </div>
-
-        <!-- SECOND ROW (2 COLUMNS) -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
-
-            <!-- UPCOMING DEADLINES -->
-            <div class="bg-white border rounded-xl p-4 shadow">
-                <p class="font-semibold">Upcoming Deadlines</p>
-                <p class="text-gray-500 text-sm mb-4">Scholarships closing soon</p>
-
-                <div class="space-y-3">
-                    <?php if (empty($deadlines)): ?>
-                        <p class="text-sm text-gray-500">No upcoming deadlines.</p>
-                    <?php else: ?>
-                        <?php foreach ($deadlines as $d): 
-                            $daysLeft = ceil((strtotime($d['deadline']) - time()) / 86400);
-                        ?>
-                            <div class="flex items-center justify-between border p-3 rounded-lg">
-                                <div>
-                                    <p class="font-semibold"><?= htmlspecialchars($d['scholarship_Name']) ?></p>
-                                    <p class="text-xs text-gray-500"><?= $d['deadline'] ?></p>
+                    <div class="space-y-3">
+                        <?php if (empty($deadlines)): ?>
+                            <p class="text-sm text-gray-500">No upcoming deadlines.</p>
+                        <?php else: ?>
+                            <?php foreach ($deadlines as $d): 
+                                $daysLeft = ceil((strtotime($d['deadline']) - time()) / 86400);
+                            ?>
+                                <div class="flex items-center justify-between border p-3 rounded-lg">
+                                    <div>
+                                        <p class="font-semibold"><?= htmlspecialchars($d['scholarship_Name']) ?></p>
+                                        <p class="text-xs text-gray-500"><?= $d['deadline'] ?></p>
+                                    </div>
+                                    <span class="text-xs text-orange-500"><?= $daysLeft ?> days left</span>
                                 </div>
-                                <span class="text-xs text-orange-500"><?= $daysLeft ?> days left</span>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
+
+                <!-- RECENT ACTIVITY -->
+                <div class="bg-white border rounded-xl p-4 shadow">
+                    <p class="font-semibold">Recent Activity</p>
+                    <p class="text-gray-500 text-sm mb-4">Your latest application updates</p>
+
+                    <div class="space-y-3">
+                        <?php if (empty($activities)): ?>
+                            <p class="text-sm text-gray-500">No recent activity.</p>
+                        <?php else: ?>
+                            <?php foreach ($activities as $act): ?>
+                                <div class="flex justify-between items-start border p-3 rounded-lg">
+                                    <div>
+                                        <p class="font-semibold"><?= htmlspecialchars($act['scholarship_Name']) ?></p>
+                                        <p class="text-xs text-gray-500"><?= $act['date_applied'] ?></p>
+                                    </div>
+
+                                    <?php 
+                                        $color = [
+                                            'pending' => 'text-yellow-600 bg-yellow-100',
+                                            'approved' => 'text-green-600 bg-green-100',
+                                            'rejected' => 'text-red-600 bg-red-100'
+                                        ][$act['status']];
+                                    ?>
+
+                                    <div class="text-xs <?= $color ?> px-2 py-1 rounded">
+                                        <?= $act['status'] ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- RECENT ACTIVITY -->
+            <!-- STATISTICS (FULL WIDTH) -->
             <div class="bg-white border rounded-xl p-4 shadow">
-                <p class="font-semibold">Recent Activity</p>
-                <p class="text-gray-500 text-sm mb-4">Your latest application updates</p>
 
-                <div class="space-y-3">
-                    <?php if (empty($activities)): ?>
-                        <p class="text-sm text-gray-500">No recent activity.</p>
-                    <?php else: ?>
-                        <?php foreach ($activities as $act): ?>
-                            <div class="flex justify-between items-start border p-3 rounded-lg">
-                                <div>
-                                    <p class="font-semibold"><?= htmlspecialchars($act['scholarship_Name']) ?></p>
-                                    <p class="text-xs text-gray-500"><?= $act['date_applied'] ?></p>
-                                </div>
+                <p class="font-semibold mb-4">Application Statistics</p>
 
-                                <?php 
-                                    $color = [
-                                        'pending' => 'text-yellow-600 bg-yellow-100',
-                                        'approved' => 'text-green-600 bg-green-100',
-                                        'rejected' => 'text-red-600 bg-red-100'
-                                    ][$act['status']];
-                                ?>
+                <div class="grid grid-cols-3 gap-4">
 
-                                <div class="text-xs <?= $color ?> px-2 py-1 rounded">
-                                    <?= $act['status'] ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                    <!-- SUCCESS RATE -->
+                    <div class="bg-blue-50 text-blue-700 rounded-xl p-6 flex flex-col items-center">
+                        <p class="text-3xl font-bold"><?= $successRate ?>%</p>
+                        <p class="text-xs text-blue-700">Success Rate</p>
+                    </div>
+
+                    <!-- TOTAL AWARDS -->
+                    <div class="bg-green-50 text-green-700 rounded-xl p-6 flex flex-col items-center">
+                        <p class="text-3xl font-bold">₱<?= number_format($totalAwards) ?></p>
+                        <p class="text-xs text-green-700">Total Awards</p>
+                    </div>
+
+                    <!-- SCHOLARSHIPS APPLIED -->
+                    <div class="bg-yellow-50 text-yellow-700 rounded-xl p-6 flex flex-col items-center">
+                        <p class="text-3xl font-bold"><?= $submitted ?></p>
+                        <p class="text-xs text-yellow-700">Scholarships Applied</p>
+                    </div>
+
                 </div>
             </div>
 
-        </div>
-
-        <!-- STATISTICS (FULL WIDTH) -->
-        <div class="bg-white border rounded-xl p-4 shadow">
-
-            <p class="font-semibold mb-4">Application Statistics</p>
-
-            <div class="grid grid-cols-3 gap-4">
-
-                <!-- SUCCESS RATE -->
-                <div class="bg-blue-50 text-blue-700 rounded-xl p-6 flex flex-col items-center">
-                    <p class="text-3xl font-bold"><?= $successRate ?>%</p>
-                    <p class="text-xs text-blue-700">Success Rate</p>
-                </div>
-
-                <!-- TOTAL AWARDS -->
-                <div class="bg-green-50 text-green-700 rounded-xl p-6 flex flex-col items-center">
-                    <p class="text-3xl font-bold">₱<?= number_format($totalAwards) ?></p>
-                    <p class="text-xs text-green-700">Total Awards</p>
-                </div>
-
-                <!-- SCHOLARSHIPS APPLIED -->
-                <div class="bg-yellow-50 text-yellow-700 rounded-xl p-6 flex flex-col items-center">
-                    <p class="text-3xl font-bold"><?= $submitted ?></p>
-                    <p class="text-xs text-yellow-700">Scholarships Applied</p>
-                </div>
-
-            </div>
-        </div>
-
-    </main>
+        </main>
 </div>
 
 </body>

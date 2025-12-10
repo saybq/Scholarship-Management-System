@@ -13,57 +13,57 @@
     $reviewer_ID = $_SESSION["user_id"];
 
     $stmt = $pdo->prepare("
-    SELECT COUNT(scholarship_ID)
-    FROM scholarshipprogram
-    WHERE reviewer_ID = ?");
+        SELECT COUNT(scholarship_ID)
+        FROM scholarshipprogram
+        WHERE reviewer_ID = ?");
     $stmt->execute([$reviewer_ID]);
     $assignedPrograms = $stmt->fetchColumn();
 
     $stmt = $pdo->prepare("
-    SELECT COUNT(a.application_ID)
-    FROM application a
-    JOIN scholarshipprogram s ON a.scholarship_ID = s.scholarship_ID
-    WHERE s.reviewer_ID = ?
-    AND a.status = 'pending'");
+        SELECT COUNT(a.application_ID)
+        FROM application a
+        JOIN scholarshipprogram s ON a.scholarship_ID = s.scholarship_ID
+        WHERE s.reviewer_ID = ?
+        AND a.status = 'pending'");
     $stmt->execute([$reviewer_ID]);
     $pendingReviews = $stmt->fetchColumn();
 
     $stmt = $pdo->prepare("
-    SELECT COUNT(a.application_ID)
-    FROM application a
-    JOIN scholarshipprogram s ON a.scholarship_ID = s.scholarship_ID
-    WHERE s.reviewer_ID = ?
-    AND a.status = 'approved'");
+        SELECT COUNT(a.application_ID)
+        FROM application a
+        JOIN scholarshipprogram s ON a.scholarship_ID = s.scholarship_ID
+        WHERE s.reviewer_ID = ?
+        AND a.status = 'approved'");
     $stmt->execute([$reviewer_ID]);
     $approved = $stmt->fetchColumn();
 
     $stmt = $pdo->prepare("
-    SELECT COUNT(a.application_ID)
-    FROM application a
-    JOIN scholarshipprogram s ON a.scholarship_ID = s.scholarship_ID
-    WHERE s.reviewer_ID = ?
-    AND a.status = 'rejected'");
+        SELECT COUNT(a.application_ID)
+        FROM application a
+        JOIN scholarshipprogram s ON a.scholarship_ID = s.scholarship_ID
+        WHERE s.reviewer_ID = ?
+        AND a.status = 'rejected'");
     $stmt->execute([$reviewer_ID]);
     $rejected = $stmt->fetchColumn();
 
     $stmt = $pdo->prepare("
-    SELECT 
-        a.application_ID,
-        a.date_applied,
-        s.scholarship_Name,
-        st.first_Name,
-        st.middle_Name,
-        st.last_Name
-    FROM application a
-    JOIN scholarshipprogram s 
-        ON a.scholarship_ID = s.scholarship_ID
-    JOIN student st
-        ON a.student_ID = st.ID
-    WHERE s.reviewer_ID = ?
-    AND s.status = ?
-    AND a.status = 'pending'
-    ORDER BY a.date_applied DESC 
-    LIMIT 3");
+        SELECT 
+            a.application_ID,
+            a.date_applied,
+            s.scholarship_Name,
+            st.first_Name,
+            st.middle_Name,
+            st.last_Name
+        FROM application a
+        JOIN scholarshipprogram s 
+            ON a.scholarship_ID = s.scholarship_ID
+        JOIN student st
+            ON a.student_ID = st.ID
+        WHERE s.reviewer_ID = ?
+        AND s.status = ?
+        AND a.status = 'pending'
+        ORDER BY a.date_applied DESC 
+        LIMIT 3");
     $stmt->execute([$reviewer_ID, "approved"]);
     $pendingList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -87,7 +87,6 @@
 <body class="bg-gray-50 ">
 
     <div class="flex min-h-screen">
-
         <?php include __DIR__ . '/../../assets/components/reviewerSidebar.php'; ?>
         
         <main class="flex-1 p-6">
@@ -96,42 +95,39 @@
                 <p class="text-gray-500">Welcome back, Reviewer</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <!-- Top Statatistics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 text-xs">
 
-                <div class="bg-white p-5 rounded-xl shadow flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-500 text-sm">Assigned Programs</p>
-                        <div class="mt-2 text-3xl font-bold"><?= $assignedPrograms ?></div>
-                        <p class="text-gray-400 text-xs mt-1">Programs to review</p>
-                    </div>
-                    <span class="material-symbols-outlined text-yellow-600 text-sm">folder_open</span>
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#3b82f6,0_1px_2px_rgba(0,0,0,0.08)]">
+                    <p class="text-gray-500 text-sm font-medium flex items-center">Assigned Programs
+                        <span class="material-symbols-outlined text-blue-600 text-sm ml-auto">folder_open</span>
+                    </p>
+                    <p class="text-2xl font-bold mt-2"><?= $assignedPrograms ?></p>
+                    <p class="text-gray-400 text-xs">Programs to review</p>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-500 text-sm">Pending Reviews</p>
-                        <div class="mt-2 text-3xl font-bold"><?= $pendingReviews ?></div>
-                        <p class="text-gray-400 text-xs mt-1">Awaiting evaluation</p>
-                    </div>
-                    <span class="material-symbols-outlined text-blue-500 text-sm">schedule</span>
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#facc15,0_1px_2px_rgba(0,0,0,0.08)]">
+                        <p class="text-gray-500 text-sm font-medium flex items-center">Pending Reviews
+                            <span class="material-symbols-outlined text-yellow-500 text-sm ml-auto">schedule</span>
+                        </p>
+                        <p class="text-2xl font-bold mt-2"><?= $pendingReviews ?></p>
+                        <p class="text-gray-400 text-xs">Awaiting evaluation</p>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-500 text-sm">Approved</p>
-                        <div class="mt-2 text-3xl font-bold"><?= $approved ?></div>
-                        <p class="text-gray-400 text-xs mt-1">Applications approved</p>
-                    </div>
-                    <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#16a34a,0_1px_2px_rgba(0,0,0,0.08)]">
+                        <p class="text-gray-500 text-sm font-medium flex items-center">Approved
+                            <span class="material-symbols-outlined text-green-600 text-sm ml-auto">check_circle</span>
+                        </p>
+                        <p class="text-2xl font-bold mt-2"><?= $approved ?></p>
+                        <p class="text-gray-400 text-xs">Applications approved</p>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-500 text-sm">Rejected</p>
-                        <div class="mt-2 text-3xl font-bold"><?= $rejected ?></div>
-                        <p class="text-gray-400 text-xs mt-1">Applications rejected</p>
-                    </div>
-                    <span class="material-symbols-outlined text-red-500 text-sm">cancel</span>
+                <div class="bg-white p-4 rounded-lg shadow-sm border text-sm [box-shadow:inset_4px_0_0_#dc2626,0_1px_2px_rgba(0,0,0,0.08)]">
+                        <p class="text-gray-500 text-sm font-medium flex items-center">Rejected
+                            <span class="material-symbols-outlined text-red-600 text-sm ml-auto">cancel</span>
+                        </p>
+                        <p class="text-2xl font-bold mt-2"><?= $rejected ?></p>
+                        <p class="text-gray-400 text-xs">Applications rejected</p>
                 </div>
 
             </div>
