@@ -22,7 +22,7 @@
             s.sponsor_type,
             CONCAT(r.first_Name, ' ', r.last_Name) AS reviewer_name,
 
-            COUNT(a.application_ID) AS applicants_count  -- NEW FIELD
+            COUNT(a.application_ID) AS applicants_count  
 
         FROM scholarshipprogram sp
         LEFT JOIN sponsor s 
@@ -30,11 +30,11 @@
         LEFT JOIN admissionstaff r
             ON sp.reviewer_ID = r.reviewer_ID
         LEFT JOIN application a
-            ON sp.scholarship_ID = a.scholarship_ID  -- COUNT APPLICATIONS
+            ON sp.scholarship_ID = a.scholarship_ID 
 
-        WHERE sp.status = 'approved'
+        WHERE sp.status IN ('approved', 'under_review')
         GROUP BY sp.scholarship_ID
-        ORDER BY sp.scholarship_ID DESC
+        ORDER BY sp.status DESC
     ";
 
 
@@ -104,9 +104,21 @@
             <?php foreach ($scholarships as $s): ?>
             <div class="bg-white p-6 rounded-xl shadow border mb-4">
 
-                <div>
-                    <h2 class="text-lg font-semibold"><?= htmlspecialchars($s['scholarship_Name']) ?></h2>
-                    <p class="text-sm text-gray-500"><?= htmlspecialchars($s['sponsor_company']) ?></p>
+                <div class="flex items-start justify-between">
+                    <!-- LEFT SIDE -->
+                    <div>
+                        <h2 class="text-lg font-semibold"><?= htmlspecialchars($s['scholarship_Name']) ?></h2>
+                        <p class="text-sm text-gray-500"><?= htmlspecialchars($s['sponsor_company']) ?></p>
+                    </div>
+
+                    <!-- RIGHT SIDE STATUS -->
+                    <div>
+                        <span class="text-sm px-3 py-1 rounded-full 
+                            <?= $s['status'] === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' ?>">
+                            <?= htmlspecialchars($s['status']) ?>
+                        </span>
+                    </div>
+
                 </div>
 
                 <div class="mt-4 grid grid-cols-2 items-center text-sm">
@@ -150,6 +162,14 @@
 
                             <span class="material-symbols-outlined text-base">person_search</span>
                             Change Reviewer
+                        </button>
+
+                        <button class="hover:text-blue-600"
+                            onclick="openUnderReviewModal(
+                                    decodeURIComponent('<?= rawurlencode($s['scholarship_Name']) ?>'),
+                                    '/Scholarship/app/controllers/admin/underReviewScholarship.php?id=<?= $s['scholarship_ID'] ?>'
+                                )">
+                            <span class="material-symbols-outlined">text_compare</span>
                         </button>
 
                         <button class="hover:text-red-600"
@@ -246,6 +266,36 @@
                 </div>
             </div>
 
+            <!-- UNDER REVIEW SCHOLARSHIP MODAL -->
+            <div id="under_reviewModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
+                <div class="bg-white w-[450px] p-6 rounded-xl shadow-xl relative">
+
+                    <button onclick="closeUnderReviewModal()" class="absolute right-4 top-4 text-gray-500 hover:text-gray-700">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+
+                    <h2 class="text-xl font-semibold text-gray-800">Mark as Under Review</h2>
+
+                    <p class="text-gray-600 text-sm mt-2">
+                        Are you sure you want to close the applcation of
+                        "<span id="UnderReviewScholarshipName" class="font-medium"></span>"?
+                    </p>
+
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button onclick="closeUnderReviewModal()" 
+                            class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">
+                            Cancel
+                        </button>
+
+                        <button id="confirmUnderReviewBtn"
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500">
+                            Yes
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -276,6 +326,15 @@
         document.getElementById('deleteModal').classList.add('hidden');
     }
     
+    function openUnderReviewModal(name, underReviewModal) {
+        document.getElementById('UnderReviewScholarshipName').innerText = name;
+        document.getElementById('confirmUnderReviewBtn').setAttribute("onclick", `location.href='${underReviewModal}'`);
+        document.getElementById('under_reviewModal').classList.remove('hidden');
+    }
+
+    function closeUnderReviewModal() {
+        document.getElementById('under_reviewModal').classList.add('hidden');
+    }
 </script>
 
 </body>

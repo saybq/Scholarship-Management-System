@@ -94,7 +94,7 @@
                         $reqCount = substr_count(trim($s['requirements']), "\n") + 1;
                     ?>
 
-                    <div class="bg-white p-5 rounded-lg shadow flex justify-between items-center border">
+                    <div class="bg-white hover:bg-gray-50 p-5 rounded-lg shadow flex justify-between items-center border">
                         <div class="flex items-start gap-3">
                             <span class="material-symbols-outlined text-blue-500">school</span>
 
@@ -173,7 +173,7 @@
                 <ul id="reqList" class="list-disc ml-6 text-sm text-gray-700 space-y-1 mb-4"></ul>
 
                 <label class="text-sm font-medium text-gray-700">Google Drive Link</label>
-                <input type="text" name="requirements_link" required
+                <input type="url" name="requirements_link" required
                     placeholder="https://drive.google.com/..."
                     class="w-full border px-3 py-2 rounded mt-1 mb-3 text-sm">
 

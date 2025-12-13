@@ -87,7 +87,7 @@
 
 </head>
 
-<body class="bg-gray-50 ">
+<body class="bg-gray-50">
 
     <div class="flex min-h-screen">
         <?php include __DIR__ . '/../../assets/components/sponsorSidebar.php'; ?>
@@ -169,18 +169,18 @@
                                         </p>
                                     </div>
 
-                                    <?php
-                                        $status = $program["status"];
-                                        $badgeColor = match ($status) {
-                                            "approved" => "bg-green-100 text-green-700",
-                                            "pending" => "bg-yellow-100 text-yellow-700",
-                                            "rejected" => "bg-red-100 text-red-700",
-                                            default => "bg-gray-200 text-gray-600"
-                                        };
-                                    ?>
-                                    <span class="px-2 py-1 text-[10px] rounded-full <?= $badgeColor ?>">
-                                        <?= htmlspecialchars($status) ?>
+                                    <?php $status = $program['status']; ?>
+
+                                    <span class="px-2 py-1 text-[10px] rounded-full
+                                        <?= $status === 'approved' ? 'bg-green-100 text-green-700' : '' ?>
+                                        <?= $status === 'inactive' ? 'bg-gray-200 text-gray-700' : '' ?>
+                                        <?= $status === 'pending' ? 'bg-yellow-100 text-yellow-700' : '' ?>
+                                        <?= $status === 'under_review' ? 'bg-orange-200 text-yellow-700' : '' ?>
+                                        <?= $status === 'rejected' ? 'bg-red-100 text-red-700' : '' ?>
+                                    ">
+                                        <?= strtoupper($status) ?>
                                     </span>
+
                                 </div>
 
                             <?php endforeach; ?>

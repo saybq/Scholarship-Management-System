@@ -79,23 +79,20 @@
         if ($role === "sponsor") {
             $sql = "INSERT INTO sponsor 
                     (username, password, first_Name, last_Name, middle_Name, email, contact_Number, sponsor_company, sponsor_type)
-                    VALUES (?, ?, ?, 'N/A', 'N/A', ?, ?, 'N/A', 'external')";
+                    VALUES (?, ?, ?, 'N/A', 'N/A', ?, 'N/A', 'N/A', 'external')";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$username, $password, $firstname, $email, $contact]);
+            $stmt->execute([$username, $password, $firstname, $email]);
         }
 
         if ($role === "student") {
             $currentTime = (int) time() % 10000000;
             $sql = "INSERT INTO student 
                     (username, password, student_ID, first_Name, middle_Name, last_Name, contact_Number, email, year_Level, college_department, course)
-                    VALUES (?, ?, ?, ?, 'N/A', ?, 'N/A', ?, 'N/A', 'N/A', 'N/A')";
+                    VALUES (?, ?, ?, ?, 'N/A', 'N/A', 'N/A', ?, 'N/A', 'N/A', 'N/A')";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$username, $password, $currentTime, $firstname, $last, $email]);
+            $stmt->execute([$username, $password, $currentTime, $firstname, $email]);
         }
 
             header("Location: /Scholarship/app/views/users/admin/manageUser.php?created=1");
             exit;
     }
-
-
-

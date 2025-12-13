@@ -95,7 +95,7 @@
                             type="text" 
                             name="username"
                             class="w-full border p-2 rounded mt-1 text-xs" 
-                            value="<?= htmlspecialchars($data['username']); ?>">2
+                            value="<?= htmlspecialchars($data['username']); ?>">
                     </div>
 
                     <!-- SPONSOR COMPANY -->

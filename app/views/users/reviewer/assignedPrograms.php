@@ -1,69 +1,64 @@
 <?php
-session_start();
-require_once __DIR__ . "../../../../core/dbconnection.php";
+    session_start();
+    require_once __DIR__ . "../../../../core/dbconnection.php";
 
-if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] !== true) {
-    header("Location: /Scholarship/app/views/auth/login.php");
-    exit;
-}
+    if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] !== true) {
+        header("Location: /Scholarship/app/views/auth/login.php");
+        exit;
+    }
 
-if ($_SESSION["role"] !== "reviewer") {
-    header("Location: /Scholarship/app/views/auth/login.php");
-    exit;
-}
+    if ($_SESSION["role"] !== "reviewer") {
+        header("Location: /Scholarship/app/views/auth/login.php");
+        exit;
+    }
 
-$reviewer_ID = $_SESSION["user_id"];
+    $reviewer_ID = $_SESSION["user_id"];
 
-// ------------------------------------------------------------
-// 1. FETCH PROGRAMS ASSIGNED TO THIS REVIEWER
-// ------------------------------------------------------------
-$sqlPrograms = "
-    SELECT sp.scholarship_ID, sp.scholarship_Name, sp.requirements, 
-        sp.Amount, sp.deadline,
-        s.sponsor_company
-    FROM scholarshipprogram sp
-    LEFT JOIN sponsor s ON sp.sponsor_ID = s.sponsor_ID
-    WHERE sp.reviewer_ID = ? 
-    AND sp.status = ?
-    AND sp.deadline >= CURDATE()
-";
-
-$stmtPrograms = $pdo->prepare($sqlPrograms);
-$stmtPrograms->execute([$reviewer_ID, "approved"]);
-$programs = $stmtPrograms->fetchAll(PDO::FETCH_ASSOC);
-
-// ------------------------------------------------------------
-// 2. FETCH APPLICATIONS FOR SELECTED PROGRAM
-// ------------------------------------------------------------
-$applications = [];
-$selectedProgram = null;
-
-if (isset($_GET["program"])) {
-    $selectedProgram = intval($_GET["program"]);
-
-    $sqlApplications = "
-        SELECT a.*, 
-            s.first_Name, s.last_Name, s.student_ID, 
-            s.course, s.year_Level
-        FROM application a
-        INNER JOIN student s ON a.student_ID = s.ID
-        WHERE a.scholarship_ID = ?
-        AND a.status = 'pending'
-        ORDER BY a.date_applied DESC
+    // 1. FETCH PROGRAMS ASSIGNED TO THIS REVIEWER
+    $sqlPrograms = "
+        SELECT sp.scholarship_ID, sp.scholarship_Name, sp.requirements, 
+            sp.Amount, sp.deadline,
+            s.sponsor_company
+        FROM scholarshipprogram sp
+        LEFT JOIN sponsor s ON sp.sponsor_ID = s.sponsor_ID
+        WHERE sp.reviewer_ID = ? 
+        AND sp.status IN ('under_review','approved')
     ";
 
+    $stmtPrograms = $pdo->prepare($sqlPrograms);
+    $stmtPrograms->execute([$reviewer_ID]);
+    $programs = $stmtPrograms->fetchAll(PDO::FETCH_ASSOC);
 
-    $stmtApps = $pdo->prepare($sqlApplications);
-    $stmtApps->execute([$selectedProgram]);
-    $applications = $stmtApps->fetchAll(PDO::FETCH_ASSOC);
+    // 2. FETCH APPLICATIONS FOR SELECTED PROGRAM
+    $applications = [];
+    $selectedProgram = null;
 
-    foreach ($programs as $prog) {
-        if ($prog["scholarship_ID"] == $selectedProgram) {
-            $selectedProgramName = $prog["scholarship_Name"];
-            break;
+    if (isset($_GET["program"])) {
+        $selectedProgram = intval($_GET["program"]);
+
+        $sqlApplications = "
+            SELECT a.*, 
+                s.first_Name, s.last_Name, s.student_ID, 
+                s.course, s.year_Level
+            FROM application a
+            INNER JOIN student s ON a.student_ID = s.ID
+            WHERE a.scholarship_ID = ?
+            AND a.status = 'pending'
+            ORDER BY a.date_applied DESC
+        ";
+
+
+        $stmtApps = $pdo->prepare($sqlApplications);
+        $stmtApps->execute([$selectedProgram]);
+        $applications = $stmtApps->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($programs as $prog) {
+            if ($prog["scholarship_ID"] == $selectedProgram) {
+                $selectedProgramName = $prog["scholarship_Name"];
+                break;
+            }
         }
     }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -139,6 +134,14 @@ if (isset($_GET["program"])) {
                                 <span class="material-symbols-outlined text-base">event</span>
                                 Deadline: <?= htmlspecialchars($p["deadline"]) ?>
                             </span>
+
+                            <span class="flex items-center gap-1 text-blue-600">
+                                <span class="material-symbols-outlined text-base ">
+                                    flag
+                                </span>
+                                Mark as Completed
+                            </span>
+                            
                         </div>
                     </div>
 
@@ -182,7 +185,6 @@ if (isset($_GET["program"])) {
                     </a>
                 </div>
             <?php endif; ?>
-
 
             <?php foreach ($applications as $a): ?>
                 <div class="bg-white border rounded-lg p-5 shadow-sm mb-4">

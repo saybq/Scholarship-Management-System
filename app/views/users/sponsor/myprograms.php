@@ -13,64 +13,69 @@
     }
 
     $sponsorID = $_SESSION["user_id"];
+    $activeTab = $_GET['tab'] ?? 'create';
 
-    // ========== PENDING PROGRAMS ==========
-    $sql = "
-        SELECT 
-            scholarship_ID,
-            scholarship_Name AS scholarship_name,
-            description,
-            Amount,
-            requirements,
-            deadline,
-            dateof_creation
-        FROM scholarshipprogram
-        WHERE sponsor_ID = :sid AND status = 'pending'
-        ORDER BY scholarship_ID DESC";
+    if ($activeTab === 'pending') {
+        $sql = "
+            SELECT 
+                scholarship_ID,
+                scholarship_Name AS scholarship_name,
+                description,
+                Amount,
+                requirements,
+                deadline,
+                dateof_creation
+            FROM scholarshipprogram
+            WHERE sponsor_ID = :sid AND status = 'pending'
+            ORDER BY scholarship_ID DESC";
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([":sid" => $sponsorID]);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([":sid" => $sponsorID]);
 
-    $pendingScholarships = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pendingScholarships = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-    // ========== APPROVED PROGRAMS ==========
-    $sqlApproved = "
-        SELECT 
-            scholarship_ID,
-            scholarship_Name AS scholarship_name,
-            description,
-            Amount,
-            requirements,
-            deadline,
-            dateof_creation
-        FROM scholarshipprogram
-        WHERE sponsor_ID = :sid AND status = 'approved'
-        ORDER BY scholarship_ID DESC";
+    if ($activeTab === 'approved') {
+        $sqlApproved = "
+            SELECT 
+                scholarship_ID,
+                scholarship_Name AS scholarship_name,
+                description,
+                Amount,
+                requirements,
+                deadline,
+                status,
+                dateof_creation
+            FROM scholarshipprogram
+            WHERE sponsor_ID = :sid AND status IN ('approved', 'under_review' , 'inactive')
+            ORDER BY status ASC";
 
-    $stmtApproved = $pdo->prepare($sqlApproved);
-    $stmtApproved->execute([":sid" => $sponsorID]);
+        $stmtApproved = $pdo->prepare($sqlApproved);
+        $stmtApproved->execute([":sid" => $sponsorID]);
 
-    $approvedScholarships = $stmtApproved->fetchAll(PDO::FETCH_ASSOC);
+        $approvedScholarships = $stmtApproved->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-    // ========== REJECTED PROGRAMS ==========
-    $sqlRejected = "
-        SELECT 
-            scholarship_ID,
-            scholarship_Name AS scholarship_name,
-            description,
-            Amount,
-            requirements,
-            deadline,
-            dateof_creation,
-            note AS rejection_reason
-        FROM scholarshipprogram
-        WHERE sponsor_ID = :sid AND status = 'rejected'
-        ORDER BY scholarship_ID DESC";
+        if ($activeTab === 'rejected') {
+            $sqlRejected = "
+            SELECT 
+                scholarship_ID,
+                scholarship_Name AS scholarship_name,
+                description,
+                Amount,
+                requirements,
+                deadline,
+                dateof_creation,
+                note AS rejection_reason
+            FROM scholarshipprogram
+            WHERE sponsor_ID = :sid AND status = 'rejected'
+            ORDER BY scholarship_ID DESC";
 
-    $stmtRejected = $pdo->prepare($sqlRejected);
-    $stmtRejected->execute([":sid" => $sponsorID]);
+        $stmtRejected = $pdo->prepare($sqlRejected);
+        $stmtRejected->execute([":sid" => $sponsorID]);
 
-    $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
+        $rejectedScholarships = $stmtRejected->fetchAll(PDO::FETCH_ASSOC);
+    }
 
 ?>
 
@@ -83,7 +88,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600;700" />
 </head>
-<body class="bg-gray-50 ">
+<body class="bg-gray-50">
 
     <div class="flex min-h-screen">
 
@@ -100,62 +105,109 @@
                     </div>
 
                     <!-- ========== TABS WRAPPER (HIDDEN WHEN FORM OPENS) ========== -->
-                    <div id="tabsContainer">
+                     <div class="inline-flex bg-gray-100 rounded-md p-1 text-sm font-semibold text-gray-700 gap-2">
 
-                        <!-- HIDDEN RADIO BUTTONS -->
-                        <input type="radio" name="tab" id="tab-create" class="hidden" checked>
-                        <input type="radio" name="tab" id="tab-pending" class="hidden">
-                        <input type="radio" name="tab" id="tab-approved" class="hidden">
-                        <input type="radio" name="tab" id="tab-rejected" class="hidden">
+                        <a href="?tab=create"
+                        class="px-3 py-1 rounded-lg transition <?= $activeTab === 'create' ? 'bg-white shadow' : '' ?>">
+                        Create
+                        </a>
 
-                        <!-- SUB NAVIGATION -->
-                        <div class="tab-wrapper inline-flex bg-gray-100 rounded-md p-1 text-sm mb-4 font-semibold text-gray-700 gap-2">
+                        <a href="?tab=pending"
+                        class="px-3 py-1 rounded-lg transition <?= $activeTab === 'pending' ? 'bg-white shadow' : '' ?>">
+                        Pending
+                        </a>
 
-                            <label for="tab-create" class="tab-item cursor-pointer px-2 py-1 rounded-lg transition">
-                                Create
-                            </label>
+                        <a href="?tab=approved"
+                        class="px-3 py-1 rounded-lg transition <?= $activeTab === 'approved' ? 'bg-white shadow' : '' ?>">
+                        Approved
+                        </a>
 
-                            <label for="tab-pending" class="tab-item cursor-pointer px-2 py-1 rounded-lg transition">
-                                Pending
-                            </label>
-
-                            <label for="tab-approved" class="tab-item cursor-pointer px-2 py-1 rounded-lg transition">
-                                Approved
-                            </label>
-
-                            <label for="tab-rejected" class="tab-item cursor-pointer px-2 py-1 rounded-lg transition">
-                                Rejected
-                            </label>
+                        <a href="?tab=rejected"
+                        class="px-3 py-1 rounded-lg transition <?= $activeTab === 'rejected' ? 'bg-white shadow' : '' ?>">
+                        Rejected
+                        </a>
 
                         </div>
 
                         <!-- TAB CONTENTS -->
-                        <div class="mt-4">
+                        <div class="mt-4" id="tabsContainer">
 
                             <!-- CREATE TAB -->
-                            <div class="tab-content-create">
-                                <div class="p-5 bg-white border rounded-xl text-center shadow">
-                                    <h3 class="font-bold mb-1 text-sm">Create New Scholarship Program</h3>
-                                    <p class="text-gray-500 text-xs mb-4">Propose a new scholarship for students</p>
+                            <?php if ($activeTab === 'create'): ?>
+                                <div class="tab-content-create">
+                                    <div class="p-5 bg-white border rounded-xl text-center shadow">
+                                        <h3 class="font-bold mb-1 text-sm">Create New Scholarship Program</h3>
+                                        <p class="text-gray-500 text-xs mb-4">Propose a new scholarship for students</p>
 
-                                    <button id="showCreateForm"
-                                        class="flex items-center gap-1 mx-auto px-2 py-1 text-white bg-[#00bc7d] rounded hover:bg-green-700 text-sm">
-                                        <span class="material-symbols-outlined text-base">add</span>
-                                        Create Scholarship
-                                    </button>
+                                        <button id="showCreateForm"
+                                            class="flex items-center gap-1 mx-auto px-2 py-1 text-white bg-[#00bc7d] rounded hover:bg-green-700 text-sm">
+                                            <span class="material-symbols-outlined text-base">add</span>
+                                            Create Scholarship
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            <?php endif; ?>
 
                             <!-- PENDING TAB -->
-                            <div class="tab-content-pending hidden">
-                                    <?php if (empty($pendingScholarships)): ?>
+                            <?php if ($activeTab === 'pending'): ?>
+                                <div class="tab-content-pending">
+                                        <?php if (empty($pendingScholarships)): ?>
+                                            <p class="text-gray-500 text-center py-10 text-sm">
+                                                No pending scholarship programs.
+                                           </p>
+                                        <?php else: ?>
+                                            <?php foreach ($pendingScholarships as $sc): ?>
+                                                <div class="p-4 border rounded-xl flex justify-between items-start bg-white hover:bg-gray-50 transition mb-4">
+
+                                                    <div>
+                                                        <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_name']) ?></h3>
+
+                                                        <p class="text-gray-500 text-sm mb-2">
+                                                            <?= htmlspecialchars($sc['description']) ?>
+                                                        </p>
+
+                                                        <div class="flex items-center gap-4 text-sm text-gray-600">
+
+                                                            <div class="flex items-center gap-1">
+                                                                <span class="material-symbols-outlined text-base">payments</span>
+                                                                ₱<?= number_format($sc['Amount'], 2) ?>/year
+                                                            </div>
+
+                                                            <div class="flex items-center gap-1">
+                                                                <span class="material-symbols-outlined text-base text-orange-500">event</span>
+                                                                Deadline: <?= date("M d, Y", strtotime($sc['deadline'])) ?>
+                                                            </div>
+
+                                                            <div class="flex items-center gap-1">
+                                                                <span class="material-symbols-outlined text-base">schedule</span>
+                                                                Created: <?= date("M d, Y", strtotime($sc['dateof_creation'])) ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <span class="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 font-medium">
+                                                            Pending
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                             <?php endif; ?>
+
+                            <!-- APPROVED TAB -->
+                            <?php if ($activeTab === 'approved'): ?>
+                                <div class="tab-content-approved">
+
+                                    <?php if (empty($approvedScholarships)): ?>
                                         <p class="text-gray-500 text-center py-10 text-sm">
-                                            No pending scholarship programs.
+                                            No approved scholarship programs.
                                         </p>
                                     <?php else: ?>
-
-                                        <?php foreach ($pendingScholarships as $sc): ?>
-                                            <div class="p-4 border rounded-xl shadow flex justify-between items-start bg-white transition mb-4">
+                                        <?php foreach ($approvedScholarships as $sc): ?>
+                                            <div class="p-4 border rounded-xl shadow-sm flex justify-between items-start bg-white hover:bg-gray-50 transition mb-4">
 
                                                 <div>
                                                     <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_name']) ?></h3>
@@ -182,141 +234,91 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div>
+                                                    <span class="px-3 py-1 text-xs rounded-full font-medium 
+                                                        <?= $sc['status'] === 'approved' ? 'bg-green-100 text-green-700' : '' ?>
+                                                        <?= $sc['status'] === 'under_review' ? 'bg-orange-200 text-yellow-700' : '' ?>
+                                                        <?= $sc['status'] === 'inactive' ? 'bg-gray-200 text-gray-700' : '' ?>
+                                                    ">
+                                                        <?= strtoupper($sc['status']) ?>
+                                                    </span>
+
+                                                </div>
+
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- REJECTED TAB -->
+                            <?php if ($activeTab === 'rejected'): ?>
+                                <div class="tab-content-rejected">
+
+                                    <?php if (empty($rejectedScholarships)): ?>
+                                        <p class="text-gray-500 text-center py-10 text-sm">
+                                            No rejected scholarship programs.
+                                        </p>
+                                    <?php else: ?>
+                                        <?php foreach ($rejectedScholarships as $sc): ?>
+                                            <div class="p-4 border rounded-xl shadow-sm flex justify-between 
+                                                        items-start hover:bg-gray-50 transition mb-4">
 
                                                 <div>
-                                                    <span class="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 font-medium">
-                                                        Pending
+                                                    <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_name']) ?></h3>
+
+                                                    <p class="text-gray-500 text-sm mb-2">
+                                                        <?= htmlspecialchars($sc['description']) ?>
+                                                    </p>
+
+                                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+
+                                                        <!-- Amount -->
+                                                        <div class="flex items-center gap-1">
+                                                            <span class="material-symbols-outlined text-base">payments</span>
+                                                            ₱<?= number_format($sc['Amount'], 2) ?>/year
+                                                        </div>
+
+                                                        <!-- Deadline -->
+                                                        <div class="flex items-center gap-1">
+                                                            <span class="material-symbols-outlined text-base text-orange-500">event</span>
+                                                            Deadline: <?= date("M d, Y", strtotime($sc['deadline'])) ?>
+                                                        </div>
+
+                                                        <!-- Created -->
+                                                        <div class="flex items-center gap-1">
+                                                            <span class="material-symbols-outlined text-base">schedule</span>
+                                                            Created: <?= date("M d, Y", strtotime($sc['dateof_creation'])) ?>
+                                                        </div>
+
+                                                    </div>
+
+                                                    <!-- Rejection Reason -->
+                                                    <div class="mt-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+                                                        <strong>Reason:</strong> <?= htmlspecialchars($sc['rejection_reason']) ?>
+                                                    </div>
+                                                </div>
+
+                                                <!-- STATUS BADGE -->
+                                                <div>
+                                                    <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 font-medium">
+                                                        Rejected
                                                     </span>
                                                 </div>
 
                                             </div>
                                         <?php endforeach; ?>
-
                                     <?php endif; ?>
-                            </div>
-
-                            <!-- APPROVED TAB -->
-                            <div class="tab-content-approved hidden">
-
-                                <?php if (empty($approvedScholarships)): ?>
-                                    <p class="text-gray-500 text-center py-10 text-sm">
-                                        No approved scholarship programs.
-                                    </p>
-                                <?php else: ?>
-
-                                    <?php foreach ($approvedScholarships as $sc): ?>
-                                        <div class="p-4 border rounded-xl shadow-sm flex justify-between items-start hover:bg-gray-50 transition mb-4">
-
-                                            <div>
-                                                <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_name']) ?></h3>
-
-                                                <p class="text-gray-500 text-sm mb-2">
-                                                    <?= htmlspecialchars($sc['description']) ?>
-                                                </p>
-
-                                                <div class="flex items-center gap-4 text-sm text-gray-600">
-
-                                                    <div class="flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-base">payments</span>
-                                                        ₱<?= number_format($sc['Amount'], 2) ?>/year
-                                                    </div>
-
-                                                    <div class="flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-base text-orange-500">event</span>
-                                                        Deadline: <?= date("M d, Y", strtotime($sc['deadline'])) ?>
-                                                    </div>
-
-                                                    <div class="flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-base">schedule</span>
-                                                        Created: <?= date("M d, Y", strtotime($sc['dateof_creation'])) ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">
-                                                    Approved
-                                                </span>
-                                            </div>
-
-                                        </div>
-                                    <?php endforeach; ?>
-
-                                <?php endif; ?>
-
-                            </div>
-
-
-                            <!-- REJECTED TAB -->
-                           <div class="tab-content-rejected hidden">
-
-                                <?php if (empty($rejectedScholarships)): ?>
-                                    <p class="text-gray-500 text-center py-10 text-sm">
-                                        No rejected scholarship programs.
-                                    </p>
-                                <?php else: ?>
-
-                                    <?php foreach ($rejectedScholarships as $sc): ?>
-                                        <div class="p-4 border rounded-xl shadow-sm flex justify-between 
-                                                    items-start hover:bg-gray-50 transition mb-4">
-
-                                            <div>
-                                                <h3 class="font-semibold"><?= htmlspecialchars($sc['scholarship_name']) ?></h3>
-
-                                                <p class="text-gray-500 text-sm mb-2">
-                                                    <?= htmlspecialchars($sc['description']) ?>
-                                                </p>
-
-                                                <div class="flex items-center gap-4 text-sm text-gray-600">
-
-                                                    <!-- Amount -->
-                                                    <div class="flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-base">payments</span>
-                                                        ₱<?= number_format($sc['Amount'], 2) ?>/year
-                                                    </div>
-
-                                                    <!-- Deadline -->
-                                                    <div class="flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-base text-orange-500">event</span>
-                                                        Deadline: <?= date("M d, Y", strtotime($sc['deadline'])) ?>
-                                                    </div>
-
-                                                    <!-- Created -->
-                                                    <div class="flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-base">schedule</span>
-                                                        Created: <?= date("M d, Y", strtotime($sc['dateof_creation'])) ?>
-                                                    </div>
-
-                                                </div>
-
-                                                <!-- Rejection Reason -->
-                                                <div class="mt-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
-                                                    <strong>Reason:</strong> <?= htmlspecialchars($sc['rejection_reason']) ?>
-                                                </div>
-                                            </div>
-
-                                            <!-- STATUS BADGE -->
-                                            <div>
-                                                <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 font-medium">
-                                                    Rejected
-                                                </span>
-                                            </div>
-
-                                        </div>
-                                    <?php endforeach; ?>
-
-                                <?php endif; ?>
-                            </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
-
-                    </div> 
                     <!-- END TABS WRAPPER -->
 
-                    <!-- ========== CREATE FORM SECTION (HIDDEN INITIALLY) ========== -->
-                   <form action="../../../controllers/sponsor/submitScholarship.php" method="POST">
+                    <!-- ========== CREATE FORM SECTION ========== -->
+                <form action="../../../controllers/sponsor/submitScholarship.php" method="POST">
                     <div id="createFormContainer" class="hidden">
 
-                        <div class="max-w-3xl bg-white border rounded-xl p-6 text-sm">
+                        <div class="max-w-3xl bg-white border rounded-xl p-6 text-sm mt-5">
 
                             <div class="flex items-center gap-2 mb-4">
                                 <button type="button" id="cancelForm" class="material-symbols-outlined cursor-pointer">
@@ -385,63 +387,31 @@
                 </script>
                 <?php endif; ?>
 
+                <!-- ========== JAVASCRIPT TOGGLE LOGIC ========== -->
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const tabsContainer = document.getElementById("tabsContainer");
+                        const formContainer = document.getElementById("createFormContainer");
 
-                    <!-- ========== CSS TAB LOGIC (UNTOUCHED) ========== -->
-                    <style>
-                        #tab-create:checked ~ .tab-wrapper label[for="tab-create"],
-                        #tab-pending:checked ~ .tab-wrapper label[for="tab-pending"],
-                        #tab-approved:checked ~ .tab-wrapper label[for="tab-approved"],
-                        #tab-rejected:checked ~ .tab-wrapper label[for="tab-rejected"] {
-                            background-color: white;
-                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                        const showFormBtn = document.getElementById("showCreateForm");
+                        const cancelForm = document.getElementById("cancelForm");
+                        const cancelForm2 = document.getElementById("cancelForm2");
+
+                        function showForm() {
+                            tabsContainer.classList.add("hidden");
+                            formContainer.classList.remove("hidden");
                         }
 
-                        #tab-create:checked ~ div .tab-content-create { display: block; }
-                        #tab-create:checked ~ div .tab-content-pending,
-                        #tab-create:checked ~ div .tab-content-approved,
-                        #tab-create:checked ~ div .tab-content-rejected { display: none; }
+                        function hideForm() {
+                            formContainer.classList.add("hidden");
+                            tabsContainer.classList.remove("hidden");
+                        }
 
-                        #tab-pending:checked ~ div .tab-content-pending { display: block; }
-                        #tab-pending:checked ~ div .tab-content-create,
-                        #tab-pending:checked ~ div .tab-content-approved,
-                        #tab-pending:checked ~ div .tab-content-rejected { display: none; }
-
-                        #tab-approved:checked ~ div .tab-content-approved { display: block; }
-                        #tab-approved:checked ~ div .tab-content-create,
-                        #tab-approved:checked ~ div .tab-content-pending,
-                        #tab-approved:checked ~ div .tab-content-rejected { display: none; }
-
-                        #tab-rejected:checked ~ div .tab-content-rejected { display: block; }
-                        #tab-rejected:checked ~ div .tab-content-create,
-                        #tab-rejected:checked ~ div .tab-content-pending,
-                        #tab-rejected:checked ~ div .tab-content-approved { display: none; }
-                    </style>
-
-                    <!-- ========== JAVASCRIPT TOGGLE LOGIC ========== -->
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function () {
-                            const tabsContainer = document.getElementById("tabsContainer");
-                            const formContainer = document.getElementById("createFormContainer");
-
-                            const showFormBtn = document.getElementById("showCreateForm");
-                            const cancelForm = document.getElementById("cancelForm");
-                            const cancelForm2 = document.getElementById("cancelForm2");
-
-                            function showForm() {
-                                tabsContainer.classList.add("hidden");
-                                formContainer.classList.remove("hidden");
-                            }
-
-                            function hideForm() {
-                                formContainer.classList.add("hidden");
-                                tabsContainer.classList.remove("hidden");
-                            }
-
-                            showFormBtn.addEventListener("click", showForm);
-                            cancelForm.addEventListener("click", hideForm);
-                            cancelForm2.addEventListener("click", hideForm);
-                        });
-                    </script>
+                        showFormBtn.addEventListener("click", showForm);
+                        cancelForm.addEventListener("click", hideForm);
+                        cancelForm2.addEventListener("click", hideForm);
+                    });
+                </script>
             </main>
     </div>
 
