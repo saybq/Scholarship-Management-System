@@ -70,6 +70,12 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600;700" />
 </head>
 <body class="bg-gray-50">
+    <?php if (isset($_GET['error']) && $_GET['error'] == 'pending'):  ?>
+        <script>
+            alert("There are still Pending Applications!");
+        </script>
+    <?php endif; ?>
+
 
 <div class="flex min-h-screen">
 
@@ -101,60 +107,61 @@
                 ?>
 
                 <a href="?program=<?= $p['scholarship_ID'] ?>">
-                <div class="cursor-pointer bg-white border rounded-lg p-5 shadow-sm hover:bg-gray-100 transition flex items-center justify-between mb-3">
+                    <div class="cursor-pointer bg-white border rounded-lg p-5 shadow-sm hover:bg-gray-100 transition flex items-center justify-between mb-3">
 
-                    <div>
-                        <h2 class="text-lg font-semibold"><?= htmlspecialchars($p["scholarship_Name"]) ?></h2>
-                        <p class="text-sm text-gray-500">
-                            <?= htmlspecialchars($p["sponsor_company"]) ?>
-                        </p>
+                        <div>
+                            <h2 class="text-lg font-semibold"><?= htmlspecialchars($p["scholarship_Name"]) ?></h2>
+                            <p class="text-sm text-gray-500">
+                                <?= htmlspecialchars($p["sponsor_company"]) ?>
+                            </p>
 
-                        <?php
-                            $req = $p["requirements"];
+                            <?php
+                                $req = $p["requirements"];
 
-                            $requirementsArray = preg_split("/\r\n|\n|\r|,/", $req);
+                                $requirementsArray = preg_split("/\r\n|\n|\r|,/", $req);
 
-                            $requirementsArray = array_filter($requirementsArray);
+                                $requirementsArray = array_filter($requirementsArray);
 
-                            $requirementsFormatted = implode(", ", $requirementsArray);
-                        ?>
+                                $requirementsFormatted = implode(", ", $requirementsArray);
+                            ?>
 
-                        <p class="text-sm text-gray-500">
-                            <strong>Requirements:</strong> <?= htmlspecialchars($requirementsFormatted) ?>
-                        </p>
+                            <p class="text-sm text-gray-500">
+                                <strong>Requirements:</strong> <?= htmlspecialchars($requirementsFormatted) ?>
+                            </p>
 
 
-                        <div class="flex items-center gap-6 mt-3 text-sm text-gray-600">
-                            <span class="flex items-center gap-1">
-                                <span class="material-symbols-outlined text-base">groups</span>
-                                <?= $counts["total"] ?> total applications
-                            </span>
-
-                            <span class="flex items-center gap-1">
-                                <span class="material-symbols-outlined text-base">event</span>
-                                Deadline: <?= htmlspecialchars($p["deadline"]) ?>
-                            </span>
-
-                            <span class="flex items-center gap-1 text-blue-600">
-                                <span class="material-symbols-outlined text-base ">
-                                    flag
+                            <div class="flex items-center gap-6 mt-3 text-sm text-gray-600">
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">groups</span>
+                                    <?= $counts["total"] ?> total applications
                                 </span>
-                                Mark as Completed
+
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">event</span>
+                                    Deadline: <?= htmlspecialchars($p["deadline"]) ?>
+                                </span>
+
+                                <form method="POST" action="/Scholarship/app/controllers/reviewer/markAsCompleted.php?id=<?= $p['scholarship_ID'] ?>" onsubmit="return confirm('Are you sure?')">
+                                    <button type="submit" class="flex items-center gap-1 text-blue-600 hover:underline">
+                                        <span class="material-symbols-outlined text-base">flag</span>
+                                        Mark Program as Completed
+                                    </button>
+                                </form>
+
+                                
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <?php if ($counts["pending"] > 0): ?>
+                            <span class="bg-yellow-100 text-yellow-700 text-sm px-3 py-1 rounded-full">
+                                <?= $counts["pending"] ?> pending
                             </span>
-                            
+                            <?php endif; ?>
+
+                            <span class="material-symbols-outlined text-gray-500">chevron_right</span>
                         </div>
                     </div>
-
-                    <div class="flex items-center gap-3">
-                        <?php if ($counts["pending"] > 0): ?>
-                        <span class="bg-yellow-100 text-yellow-700 text-sm px-3 py-1 rounded-full">
-                            <?= $counts["pending"] ?> pending
-                        </span>
-                        <?php endif; ?>
-
-                        <span class="material-symbols-outlined text-gray-500">chevron_right</span>
-                    </div>
-                </div>
                 </a>
 
             <?php endforeach; ?>
